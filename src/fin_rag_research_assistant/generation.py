@@ -36,7 +36,10 @@ def build_prompt(question: str, excerpts: list[str]) -> list[dict, ...]:
         + config.GEN_INSTRUCTION
         + "."
     )
-    user = f"Excerpts:\n\n{numbered}\n\nQuestion: {question}\n\nAnswer:"
+    user = (
+        f"Excerpts:\n\n{numbered}\n\nQuestion: {question}\n\n"
+        f"{config.GEN_CITATION_REMINDER}\n\nAnswer:"
+    )
     return [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -175,18 +178,27 @@ def evaluate_generation_result(
     )
 
 
-def refusal_correctness(results: list[GenerationResult], expected: dict[str, bool]) -> dict:
+def _row_field(row: GenerationResult | dict, field: str):
+    """Read a field from either a GenerationResult or its serialized dict."""
+    if isinstance(row, dict):
+        return row[field]
+    return getattr(row, field)
+
+
+def refusal_correctness(results: list[GenerationResult | dict], expected: dict[str, bool]) -> dict:
     """Refusal behaviour summary: did the model refuse when it should?"""
     rows = []
     for res in results:
-        if res.qid not in expected:
+        if _row_field(res, "qid") not in expected:
             continue
+        used = bool(_row_field(res, "used_refusal"))
+        qid = _row_field(res, "qid")
         rows.append(
             {
-                "qid": res.qid,
-                "expected_refusal": expected[res.qid],
-                "used_refusal": res.used_refusal,
-                "correct": res.used_refusal == expected[res.qid],
+                "qid": qid,
+                "expected_refusal": expected[qid],
+                "used_refusal": used,
+                "correct": used == expected[qid],
             }
         )
     correct = sum(1 for r in rows if r["correct"])

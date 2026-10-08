@@ -63,6 +63,11 @@ GEN_INSTRUCTION = (
     "Answer using ONLY the provided excerpts; cite excerpt numbers; "
     "if the excerpts do not contain the answer, reply exactly INSUFFICIENT_CONTEXT"
 )
+# Short format reminder repeated in the user turn (small models often need the
+# citation format restated; documented prompt-design choice).
+GEN_CITATION_REMINDER = (
+    "Cite the excerpt numbers you used in square brackets, e.g. [1]."
+)
 
 FILING_LABELS = {"AAPL": "Apple Inc. FY2025 10-K", "MSFT": "Microsoft Corp. FY2026 10-K"}
 

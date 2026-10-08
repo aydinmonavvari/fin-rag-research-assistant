@@ -1,0 +1,25 @@
+# Full local environment used for the committed study results (Python 3.12.14, Linux x86_64).
+#
+# The package itself needs only the light base dependencies (pip install -e .);
+# the `rag` extra (pip install -e .[rag]) adds dense retrieval + local generation.
+# This file pins the exact validated versions for reproducibility. torch is the
+# CPU-only build (index https://download.pytorch.org/whl/cpu).
+#
+# Base dependencies
+numpy==2.1.3
+pandas==2.2.3
+scikit-learn==1.5.2
+scipy==1.14.1
+matplotlib==3.9.2
+rank-bm25==0.2.2
+statsmodels==0.14.5
+
+# Dev
+pytest==9.0.2
+ruff==0.16.10
+
+# Rag extra (dense retrieval + grounded generation; CPU-only stack)
+torch==2.14.1+cpu
+transformers==5.19.0
+sentence-transformers==6.1.0
+datasets==5.1.0

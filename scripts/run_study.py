@@ -21,6 +21,7 @@ import sys
 import time
 from dataclasses import asdict
 from pathlib import Path
+from statistics import median
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -219,7 +220,7 @@ def stage_eval_generation(args) -> None:
         "n_citation_valid": n_valid,
         "citation_validity_rate": n_valid / len(in_scope) if in_scope else 0.0,
         "groundedness_mean": sum(f1_values) / len(f1_values) if f1_values else 0.0,
-        "groundedness_median": sorted(f1_values)[len(f1_values) // 2] if f1_values else 0.0,
+        "groundedness_median": median(f1_values) if f1_values else 0.0,
         "refusal_probes_correct": refusal_rows["n_correct"],
         "total_latency_s": sum(r["latency_s"] for r in results),
         "mean_latency_s": sum(r["latency_s"] for r in results) / len(results),
@@ -282,7 +283,7 @@ def stage_report(args) -> None:  # noqa: ARG001
             "random_seed": config.RANDOM_SEED,
             "gen_subset_qids": list(config.GEN_SUBSET_QIDS),
         },
-        "provenance": _read("../data/processed/provenance.json"),
+        "provenance": _read(str(config.PROCESSED_DIR / "provenance.json")),
         "index": _read("index_stats.json"),
         "retrieval": _read("metrics_retrieval.json"),
         "generation": _read("metrics_generation.json"),

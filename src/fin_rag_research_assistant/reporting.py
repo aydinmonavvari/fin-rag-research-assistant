@@ -221,10 +221,16 @@ def render_summary(all_metrics: dict) -> str:
     add("")
     add("### Verbatim examples")
     add("")
-    for label, qid in (("GOOD", generation["examples"]["good"][0]),
-                       ("GOOD", generation["examples"]["good"][1]),
-                       ("FLAWED", generation["examples"]["flawed"][0]),
-                       ("FLAWED", generation["examples"]["flawed"][1])):
+    example_rows = [
+        (label, qid)
+        for pool in ("good", "flawed")
+        for label, qid in
+        [(pool.upper(), q) for q in generation["examples"].get(pool, [])]
+    ]
+    if not example_rows:
+        add("_No examples selected (see metrics_generation.json)._")
+        add("")
+    for label, qid in example_rows:
         row = next(r for r in generation["results"] if r["qid"] == qid)
         answer = row["raw_answer"].replace("\n", " ").strip()
         add(f"**{label} — {row['qid']}** — *{row['question']}*")
