@@ -7,10 +7,10 @@ the models are cached (they are cached by the eval stages of run_study).
 from __future__ import annotations
 
 import pytest
-from tests.conftest import make_chunks, skip_if_model_not_cached
 
 from fin_rag_research_assistant.config import GEN_MODEL_ID
 from fin_rag_research_assistant.retrievers import DENSE_MODEL_ID, DenseRetriever
+from tests.conftest import make_chunks, skip_if_model_not_cached
 
 SEMANTIC_TEXTS = [
     "The company's fiscal year ends on the last Saturday of September.",
