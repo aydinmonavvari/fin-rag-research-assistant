@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fin-rag-research-assistant"
+version = "1.0.0"
+description = "Retrieval-augmented question answering over real SEC 10-K filings: BM25 vs dense vs hybrid retrieval evaluation, citation-grounded generation and an explicit refusal policy (educational research project)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Aydin Monavvari" }]
+keywords = [
+  "retrieval-augmented-generation",
+  "information-retrieval",
+  "bm25",
+  "sentence-embeddings",
+  "sec-edgar",
+  "evaluation",
+]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.0",
+  "scikit-learn>=1.4",
+  "matplotlib>=3.8",
+  "rank-bm25>=0.2.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+# Heavy stack for dense retrieval + local generation (CPU-friendly sizes).
+rag = [
+  "torch>=2.2",
+  "transformers>=4.44",
+  "sentence-transformers>=3.0",
+  "rank-bm25>=0.2.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# The CLI bootstrap must insert src/ on sys.path before package imports.
+"scripts/run_study.py" = ["E402"]
+# Report renderer builds markdown templates (long table/format lines by design).
+"src/fin_rag_research_assistant/reporting.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

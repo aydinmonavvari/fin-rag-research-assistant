@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "fin-rag-research-assistant: retrieval-augmented QA over SEC 10-K filings with sparse/dense/hybrid retrieval evaluation and citation-grounded generation"
+authors:
+  - family-names: Monavvari
+    given-names: Aydin
+    email: 245710241+aydinmonavvari@users.noreply.github.com
+version: 1.0.0
+date-released: "2026-10-08"
+license: MIT
+repository-code: "https://github.com/aydinmonavvari/fin-rag-research-assistant"
+keywords:
+  - retrieval-augmented-generation
+  - information-retrieval
+  - bm25
+  - sentence-embeddings
+  - reciprocal-rank-fusion
+  - sec-edgar
+  - evaluation
+abstract: "Educational research study building a retrieval-augmented question-answering assistant over two real SEC 10-K filings (Apple, Microsoft), comparing BM25, dense sentence-embedding and reciprocal-rank-fusion hybrid retrieval against a random control with Recall@k/MRR/nDCG, and evaluating citation-grounded generation with a small local instruction-tuned model and an explicit refusal policy."
