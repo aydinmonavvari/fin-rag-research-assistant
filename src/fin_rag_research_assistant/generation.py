@@ -32,7 +32,8 @@ def build_prompt(question: str, excerpts: list[str]) -> list[dict, ...]:
         f"[{i + 1}] {text}" for i, text in enumerate(excerpts)
     )
     system = (
-        "You are a research assistant answering questions about SEC 10-K filings. "
+        "You are a research assistant answering questions about Federal "
+        "Reserve Beige Book economic reports. "
         + config.GEN_INSTRUCTION
         + "."
     )

@@ -30,7 +30,7 @@ def make_chunks(texts: list[str]):
     return [
         Chunk(
             chunk_id=f"d{i}",
-            filing_id="TEST",
+            doc_id="TEST",
             position=i,
             text=text,
             start_char=0,

@@ -75,9 +75,9 @@ def _questions_and_probes():
 
 def stage_fetch(args) -> None:  # noqa: ARG001
     corpus, provenance = build_corpus()
-    for ticker, meta in provenance["filings"].items():
-        print(f"[fetch] {ticker}: accession {meta['accession']} filed {meta['filing_date']} "
-              f"({meta['n_paragraphs']} paragraphs, {meta['n_chars']} chars)")
+    for doc_id, meta in provenance["documents"].items():
+        print(f"[fetch] {doc_id}: {meta['n_paragraphs']} paragraphs, "
+              f"{meta['n_chars']} chars ({meta['url']})")
 
 
 def stage_index(args) -> None:  # noqa: ARG001
@@ -85,18 +85,18 @@ def stage_index(args) -> None:  # noqa: ARG001
     stats: dict = {}
     for size in (config.CHUNK_SIZE_TOKENS, config.CHUNK_SIZE_SMALL_TOKENS):
         chunks = build_and_save_chunks(corpus, chunk_size=size, overlap=config.CHUNK_OVERLAP_TOKENS)
-        per_filing = {
-            ticker: {
+        per_doc = {
+            doc_id: {
                 "n_paragraphs": len(text.split("\n\n")),
                 "n_chars": len(text),
-                "n_chunks": sum(1 for c in chunks if c.filing_id == ticker),
-                "n_tokens": sum(c.n_tokens for c in chunks if c.filing_id == ticker),
+                "n_chunks": sum(1 for c in chunks if c.doc_id == doc_id),
+                "n_tokens": sum(c.n_tokens for c in chunks if c.doc_id == doc_id),
             }
-            for ticker, text in sorted(corpus.items())
+            for doc_id, text in sorted(corpus.items())
         }
-        stats[f"chunking_{size}"] = per_filing
+        stats[f"chunking_{size}"] = per_doc
         print(f"[index] chunk size {size}: {len(chunks)} chunks "
-              f"({ {t: per_filing[t]['n_chunks'] for t in per_filing} })")
+              f"({ {t: per_doc[t]['n_chunks'] for t in per_doc} })")
     write_json(
         REPORTS_DIR / "index_stats.json",
         {"stage": "index", "generated_at": _utc(), **stats},

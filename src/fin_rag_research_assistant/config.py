@@ -13,26 +13,41 @@ QA_DIR = DATA_DIR / "qa"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = PROJECT_ROOT / "figures"
 
-# --- SEC EDGAR access policy -------------------------------------------------
-# Descriptive User-Agent per SEC fair-access policy (https://www.sec.gov/
-# privacy-security#automated-access). We deliberately use the GitHub noreply
-# address (privacy-preserving) instead of a personal inbox. The UA really used
-# for every request is recorded in data/processed/provenance.json. The fetch
-# layer backs off and retries (bounded) when SEC's edge throttles datacenter
-# egress IPs with 403/429; if a fallback had been necessary, it would be
-# recorded there too.
-SEC_USER_AGENT_DEFAULT = "Aydin Monavvari aydinmonavvari@users.noreply.github.com"
-SEC_USER_AGENT = os.environ.get("SEC_USER_AGENT", SEC_USER_AGENT_DEFAULT)
-SEC_REQUEST_SLEEP_S = 0.75  # polite rate limit between EDGAR requests
-SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik10}.json"
-SEC_ARCHIVE_URL = (
-    "https://www.sec.gov/Archives/edgar/data/{cik}/{accession_nodashes}/{primary_doc}"
-)
+# --- Federal Reserve Beige Book access policy --------------------------------
+# Documented corpus pivot: the study was originally designed around SEC 10-K
+# filings, but SEC's edge servers return HTTP 403 to this build environment's
+# datacenter egress IP (a block that persisted across long backoffs). The
+# corpus therefore uses the Federal Reserve Beige Book: real, public-domain
+# (U.S. government) economic reports. A descriptive User-Agent is still sent
+# as good practice, using the GitHub noreply address (privacy-preserving).
+# The UA really used for every request is recorded in
+# data/processed/provenance.json. The fetch layer backs off and retries
+# (bounded) when a server throttles; cache-first logic means documents are
+# never fetched twice in one checkout.
+BB_BASE_URL = "https://www.federalreserve.gov/monetarypolicy/"
+POLITE_USER_AGENT_DEFAULT = "Aydin Monavvari aydinmonavvari@users.noreply.github.com"
+POLITE_USER_AGENT = os.environ.get("POLITE_USER_AGENT", POLITE_USER_AGENT_DEFAULT)
+REQUEST_SLEEP_S = 0.75  # polite rate limit between document requests
 
-TARGET_FILINGS: dict[str, dict[str, str]] = {
-    "AAPL": {"cik": "0000320193", "name": "Apple Inc."},
-    "MSFT": {"cik": "0000789019", "name": "Microsoft Corporation"},
-}
+# Twelve Federal Reserve district reports accompany each national summary.
+# (slug, human-readable name) — slugs match the federalreserve.gov URL scheme.
+BB_DISTRICTS: list[tuple[str, str]] = [
+    ("boston", "First District (Boston)"),
+    ("new-york", "Second District (New York)"),
+    ("philadelphia", "Third District (Philadelphia)"),
+    ("cleveland", "Fourth District (Cleveland)"),
+    ("richmond", "Fifth District (Richmond)"),
+    ("atlanta", "Sixth District (Atlanta)"),
+    ("chicago", "Seventh District (Chicago)"),
+    ("st-louis", "Eighth District (St. Louis)"),
+    ("minneapolis", "Ninth District (Minneapolis)"),
+    ("kansas-city", "Tenth District (Kansas City)"),
+    ("dallas", "Eleventh District (Dallas)"),
+    ("san-francisco", "Twelfth District (San Francisco)"),
+]
+
+# Two consecutive releases x (summary + 12 districts) = 26 documents.
+TARGET_RELEASES: list[str] = ["202510", "202601"]
 
 # --- Chunking ----------------------------------------------------------------
 # "Token" here means a whitespace-delimited word (documented approximation;
@@ -69,7 +84,11 @@ GEN_CITATION_REMINDER = (
     "Cite the excerpt numbers you used in square brackets, e.g. [1]."
 )
 
-FILING_LABELS = {"AAPL": "Apple Inc. FY2025 10-K", "MSFT": "Microsoft Corp. FY2026 10-K"}
+# Human-readable labels for the two national summaries (used in reports).
+DOC_LABELS = {
+    "202510-summary": "Beige Book October 2025 — National Summary",
+    "202601-summary": "Beige Book January 2026 — National Summary",
+}
 
 # --- Study-stage parameters (run_study CLI) ----------------------------------
 RETRIEVAL_EVAL_DEPTH = 10  # ranked-list depth kept per question (Recall@k curves)

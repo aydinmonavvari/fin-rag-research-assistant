@@ -1,10 +1,10 @@
 """QA-set schema, loader and validation.
 
 The 20-question QA set was authored during corpus preparation by the
-researcher: questions were written AFTER reading the parsed 10-K corpus, each
-with the id of the chunk that verifiably contains the answer plus a verbatim
-evidence snippet. This is documented as a limitation: the set is a study
-instrument, not a public benchmark.
+researcher: questions were written AFTER reading the parsed Beige Book corpus,
+each with the id of the chunk that verifiably contains the answer plus a
+verbatim evidence snippet. This is documented as a limitation: the set is a
+study instrument, not a public benchmark.
 """
 
 from __future__ import annotations
@@ -13,9 +13,11 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from fin_rag_research_assistant import config
+
 REQUIRED_FIELDS = {
     "qid",
-    "ticker",
+    "source",
     "question",
     "answer",
     "gold_chunk_id",
@@ -23,13 +25,17 @@ REQUIRED_FIELDS = {
     "qtype",
 }
 VALID_QTYPES = {"numeric", "categorical", "definitional", "out_of_scope"}
-VALID_TICKERS = {"AAPL", "MSFT"}
+VALID_SOURCES = {
+    f"{release}-{slug}"
+    for release in config.TARGET_RELEASES
+    for slug, _name in config.BB_DISTRICTS
+} | {f"{release}-summary" for release in config.TARGET_RELEASES}
 
 
 @dataclass(frozen=True)
 class QAItem:
     qid: str
-    ticker: str
+    source: str
     question: str
     answer: str
     gold_chunk_id: str  # chunk that verifiably contains the answer
@@ -50,16 +56,21 @@ def validate_item(item: dict) -> QAItem:
         raise ValueError(f"QA record has unexpected fields: {sorted(extra)}")
     if item["qtype"] not in VALID_QTYPES:
         raise ValueError(f"qtype '{item['qtype']}' not in {sorted(VALID_QTYPES)}")
-    if item["qtype"] != "out_of_scope" and item["ticker"] not in VALID_TICKERS:
-        raise ValueError(f"ticker '{item['ticker']}' not in {sorted(VALID_TICKERS)}")
-    for field in ("question", "answer", "evidence"):
+    if item["qtype"] != "out_of_scope" and item["source"] not in VALID_SOURCES:
+        raise ValueError(f"source '{item['source']}' not in {sorted(VALID_SOURCES)}")
+    # Out-of-scope probes deliberately carry no answer/evidence.
+    required_nonempty = (
+        ["question"] if item["qtype"] == "out_of_scope"
+        else ["question", "answer", "evidence"]
+    )
+    for field in required_nonempty:
         if not str(item[field]).strip():
             raise ValueError(f"field '{field}' must be non-empty")
     if item["qtype"] != "out_of_scope" and not item["gold_chunk_id"]:
         raise ValueError("in-scope questions require a gold_chunk_id")
     return QAItem(
         qid=item["qid"],
-        ticker=item["ticker"],
+        source=item["source"],
         question=item["question"],
         answer=item["answer"],
         gold_chunk_id=item["gold_chunk_id"],

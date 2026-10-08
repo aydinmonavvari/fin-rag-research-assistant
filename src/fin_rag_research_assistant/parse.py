@@ -1,11 +1,11 @@
-"""HTML-to-text extraction for SEC 10-K filings.
+"""HTML-to-text extraction for Federal Reserve Beige Book documents.
 
 Deliberately simple and dependency-free: a stdlib ``HTMLParser`` subclass that
 keeps paragraph-level text, emits one paragraph per table row with cells
-joined by a " | " separator, and skips script/style and XBRL-only tags. 10-K
-HTML is machine-shaped (XBRL inline tags, nested tables), so the output is a
-*study corpus*, not a typeset document — the chunker and provenance records
-make that explicit.
+joined by a " | " separator, and skips script/style and navigation noise.
+Beige Book pages are standard web pages (nav bars, banners), so the extraction
+is deliberately conservative; the output is a *study corpus*, not a typeset
+document — the chunker and provenance records make that explicit.
 """
 
 from __future__ import annotations
@@ -131,22 +131,48 @@ def full_text(paragraphs: list[str]) -> str:
     return "\n\n".join(paragraphs)
 
 
-def locate_item_headings(paragraphs: list[str]) -> dict[str, int]:
-    """Best-effort detection of 10-K item headings ("Item 1A. Risk Factors"...).
+# Beige Book section headings are short capitalized titles ("Employment",
+# "Prices", ...). Detection is best-effort and used only for provenance
+# reporting; the chunker does not depend on it.
+BB_SECTION_NAMES = {
+    "Employment",
+    "Prices",
+    "Consumer Spending",
+    "Business Spending",
+    "Real Estate",
+    "Construction",
+    "Manufacturing",
+    "Banking",
+    "Financial Services",
+    "Leisure",
+    "Hospitality",
+    "Tourism",
+    "Transportation",
+    "Agriculture",
+    "Natural Resources",
+    "Energy",
+    "Wages",
+    "Labor Market",
+    "Outlook",
+    "Employment and Wages",
+    "Consumer Spending and Tourism",
+    "Real Estate and Construction",
+    "Financial Services and Banking",
+}
 
-    Returns a mapping like {"Item 1": paragraph_index, "Item 1A": ...}.
-    Section splitting proved brittle across the two filings (inline XBRL
-    markup, mixed encodings of the item titles), so the study chunker does NOT
-    depend on it; this is used only for provenance reporting.
+
+def locate_section_headings(paragraphs: list[str]) -> dict[str, int]:
+    """Best-effort detection of Beige Book section headings in the corpus text.
+
+    Returns a mapping like {"Employment": paragraph_index, "Prices": ...} for
+    the first occurrence of each recognized heading. Section splitting proved
+    brittle across the 26 documents (district pages use varying structures),
+    so the study chunker does NOT depend on it; this is used only for
+    provenance reporting.
     """
-    pattern = re.compile(
-        r"^item\s+(\d{1,2}[A-B]?)\b[\s.:—-]*(.{0,60})", re.IGNORECASE
-    )
     found: dict[str, int] = {}
     for idx, para in enumerate(paragraphs):
-        first_line = para.split("\n", 1)[0].strip()
-        match = pattern.match(first_line)
-        if match:
-            key = f"Item {match.group(1).upper()}"
-            found.setdefault(key, idx)
+        first_line = para.split("\n", 1)[0].strip().rstrip(":")
+        if first_line in BB_SECTION_NAMES:
+            found.setdefault(first_line, idx)
     return found

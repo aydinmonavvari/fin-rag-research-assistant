@@ -10,7 +10,7 @@ from fin_rag_research_assistant.qa import load_qa_set, save_qa_set, validate_ite
 def _item(**overrides):
     base = {
         "qid": "Q-01",
-        "ticker": "AAPL",
+        "source": "202601-new-york",
         "question": "What was total net sales?",
         "answer": "$391,035 million",
         "gold_chunk_id": "AAPL:c0004:1a2b3c4d",
@@ -24,7 +24,7 @@ def _item(**overrides):
 def test_validate_item_accepts_complete_record():
     item = validate_item(_item())
     assert item.qid == "Q-01"
-    assert item.ticker == "AAPL"
+    assert item.source == "202601-new-york"
     assert item.qtype == "numeric"
 
 
@@ -51,8 +51,8 @@ def test_validate_item_empty_evidence_raises():
 
 
 def test_validate_item_out_of_scope_needs_no_gold_chunk():
-    item = validate_item(_item(qid="OOS-01", ticker="", gold_chunk_id="", qtype="out_of_scope",
-                               question="What was AAPL's Q3 1998 revenue?"))
+    item = validate_item(_item(qid="OOS-01", source="", gold_chunk_id="", qtype="out_of_scope",
+                               question="What were U.S. new-home sales in 1998?"))
     assert item.qtype == "out_of_scope"
 
 

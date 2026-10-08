@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-from fin_rag_research_assistant.parse import extract_paragraphs, full_text, locate_item_headings
+from fin_rag_research_assistant.parse import (
+    extract_paragraphs,
+    full_text,
+    locate_section_headings,
+)
 
-FIXTURE_HTML = """<html><head><title>10-K</title><style>.x { color: red; }</style>
+FIXTURE_HTML = """<html><head><title>Beige Book</title><style>.x { color: red; }</style>
 <script>var tracking = 1;</script></head>
 <body><div><p>Apple's fiscal year ends in late September.</p><p>Short.</p>
 <table><tr><td>Total net sales</td><td>$391,035</td></tr>
@@ -25,7 +29,7 @@ def test_drops_script_style_title_content():
     joined = full_text(extract_paragraphs(FIXTURE_HTML))
     assert "var tracking" not in joined
     assert "color: red" not in joined
-    assert "10-K" not in joined  # <title> content skipped
+    assert "Beige Book" not in joined  # <title> content skipped
 
 
 def test_short_fragments_are_kept_but_empties_dropped():
@@ -34,8 +38,14 @@ def test_short_fragments_are_kept_but_empties_dropped():
     assert all(p.strip() for p in paragraphs)
 
 
-def test_locate_item_headings_best_effort():
-    paragraphs = ["Item 1A. Risk Factors", "Some risk text", "Item 7. Management's Discussion"]
-    found = locate_item_headings(paragraphs)
-    assert found.get("Item 1A") == 0
-    assert found.get("Item 7") == 2
+def test_locate_section_headings_best_effort():
+    paragraphs = ["Employment", "Payrolls rose modestly.", "Prices", "Consumer prices were flat."]
+    found = locate_section_headings(paragraphs)
+    assert found.get("Employment") == 0
+    assert found.get("Prices") == 2
+
+
+def test_locate_section_headings_ignores_non_headings():
+    paragraphs = ["Employment conditions improved across districts.", "Prices"]
+    found = locate_section_headings(paragraphs)
+    assert found == {"Prices": 1}  # only exact heading lines match

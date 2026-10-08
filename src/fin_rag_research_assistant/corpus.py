@@ -1,7 +1,8 @@
-"""Corpus construction: cached filings -> parsed text -> canonical corpus.
+"""Corpus construction: cached Beige Book documents -> parsed text -> corpus.
 
 The parsed corpus is cached under data/processed/ (git-ignored) together with
-a provenance JSON recording the SEC accession numbers, fetch dates and URLs.
+a provenance JSON recording each document's release, title, URL, fetch date
+and the User-Agent actually used.
 """
 
 from __future__ import annotations
@@ -11,8 +12,8 @@ import time
 from pathlib import Path
 
 from fin_rag_research_assistant import config
+from fin_rag_research_assistant.beigebook import fetch_all_docs
 from fin_rag_research_assistant.chunk import Chunk, chunk_corpus, save_chunks
-from fin_rag_research_assistant.edgar import fetch_all_filings
 from fin_rag_research_assistant.parse import extract_paragraphs, full_text
 
 
@@ -20,29 +21,29 @@ def build_corpus(
     raw_dir: Path | None = None,
     processed_dir: Path | None = None,
 ) -> tuple[dict[str, str], dict]:
-    """Parse every cached filing into {filing_id: corpus_text} + provenance."""
+    """Parse every cached Beige Book document into {doc_id: corpus_text} + provenance."""
     raw_dir = Path(raw_dir) if raw_dir else config.RAW_DIR
     processed_dir = Path(processed_dir) if processed_dir else config.PROCESSED_DIR
     processed_dir.mkdir(parents=True, exist_ok=True)
 
-    fetched = fetch_all_filings(raw_dir)
+    fetched = fetch_all_docs(raw_dir)
     corpus: dict[str, str] = {}
-    provenance: dict = {"fetched_at": time.strftime("%Y-%m-%d"), "filings": {}}
-    for ticker, (ref, html_path) in sorted(fetched.items()):
+    provenance: dict = {
+        "fetched_at": time.strftime("%Y-%m-%d"),
+        "corpus_source": "Federal Reserve Beige Book (public domain, U.S. government)",
+        "user_agent": config.POLITE_USER_AGENT,
+        "documents": {},
+    }
+    for doc_id, (ref, html_path) in sorted(fetched.items()):
         paragraphs = extract_paragraphs(html_path.read_text(encoding="utf-8", errors="replace"))
-        corpus[ticker] = full_text(paragraphs)
-        provenance["filings"][ticker] = {
-            "company": config.TARGET_FILINGS[ticker]["name"],
-            "form": ref.form,
-            "cik": ref.cik,
-            "accession": ref.accession,
-            "filing_date": ref.filing_date,
-            "report_date": ref.report_date,
-            "document_url": ref.document_url,
-            "submissions_url": config.SEC_SUBMISSIONS_URL.format(cik10=ref.cik),
-            "user_agent": config.SEC_USER_AGENT,
+        corpus[doc_id] = full_text(paragraphs)
+        provenance["documents"][doc_id] = {
+            "title": ref.title,
+            "release": ref.release,
+            "url": ref.url,
+            "user_agent": config.POLITE_USER_AGENT,
             "n_paragraphs": len(paragraphs),
-            "n_chars": len(corpus[ticker]),
+            "n_chars": len(corpus[doc_id]),
             "cached_html_bytes": html_path.stat().st_size,
         }
     (processed_dir / "corpus.json").write_text(

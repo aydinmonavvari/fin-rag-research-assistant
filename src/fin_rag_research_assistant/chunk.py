@@ -3,7 +3,7 @@
 A "token" is a whitespace-delimited word (documented approximation — keeps
 chunking deterministic and dependency-free). Chunks slide with a fixed overlap
 so no corpus text is lost between window boundaries; provenance records the
-source filing and the character span in the canonical corpus text.
+source doc and the character span in the canonical corpus text.
 """
 
 from __future__ import annotations
@@ -16,11 +16,11 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class Chunk:
-    chunk_id: str  # deterministic: {filing_id}:c{position:04d}
-    filing_id: str  # ticker, e.g. "AAPL"
-    position: int  # 0-based chunk index within the filing
+    chunk_id: str  # deterministic: {doc_id}:c{position:04d}
+    doc_id: str  # ticker, e.g. "AAPL"
+    position: int  # 0-based chunk index within the doc
     text: str
-    start_char: int  # span in the filing's canonical corpus text
+    start_char: int  # span in the doc's canonical corpus text
     end_char: int
     n_tokens: int
 
@@ -37,14 +37,14 @@ def count_tokens(text: str) -> int:
     return len(tokenize(text))
 
 
-def _chunk_id(filing_id: str, position: int) -> str:
-    digest = hashlib.sha1(f"{filing_id}:{position}".encode()).hexdigest()[:8]
-    return f"{filing_id}:c{position:04d}:{digest}"
+def _chunk_id(doc_id: str, position: int) -> str:
+    digest = hashlib.sha1(f"{doc_id}:{position}".encode()).hexdigest()[:8]
+    return f"{doc_id}:c{position:04d}:{digest}"
 
 
 def chunk_text(
     text: str,
-    filing_id: str,
+    doc_id: str,
     chunk_size: int = 800,
     overlap: int = 100,
 ) -> list[Chunk]:
@@ -52,7 +52,7 @@ def chunk_text(
 
     The stride is ``chunk_size - overlap``; the final window is always aligned
     to the end of the text (no truncation loss). Overlap windows are trimmed to
-    actual token counts so tiny filings produce a single chunk, never empty or
+    actual token counts so tiny docs produce a single chunk, never empty or
     duplicated chunks.
     """
     tokens = tokenize(text)
@@ -64,8 +64,8 @@ def chunk_text(
     if n <= chunk_size:
         return [
             Chunk(
-                chunk_id=_chunk_id(filing_id, 0),
-                filing_id=filing_id,
+                chunk_id=_chunk_id(doc_id, 0),
+                doc_id=doc_id,
                 position=0,
                 text=text,
                 start_char=0,
@@ -93,8 +93,8 @@ def chunk_text(
         char_end = offsets[tok_end - 1] + len(tokens[tok_end - 1])
         chunks.append(
             Chunk(
-                chunk_id=_chunk_id(filing_id, position),
-                filing_id=filing_id,
+                chunk_id=_chunk_id(doc_id, position),
+                doc_id=doc_id,
                 position=position,
                 text=" ".join(tokens[tok_start:tok_end]),
                 start_char=char_start,
@@ -110,11 +110,11 @@ def chunk_corpus(
     chunk_size: int = 800,
     overlap: int = 100,
 ) -> list[Chunk]:
-    """Chunk a {filing_id: corpus_text} mapping into a single chunk list."""
+    """Chunk a {doc_id: corpus_text} mapping into a single chunk list."""
     chunks: list[Chunk] = []
-    for filing_id in sorted(corpus):
+    for doc_id in sorted(corpus):
         chunks.extend(
-            chunk_text(corpus[filing_id], filing_id, chunk_size, overlap)
+            chunk_text(corpus[doc_id], doc_id, chunk_size, overlap)
         )
     return chunks
 

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fin-rag-research-assistant"
-version = "1.0.0"
-description = "Retrieval-augmented question answering over real SEC 10-K filings: BM25 vs dense vs hybrid retrieval evaluation, citation-grounded generation and an explicit refusal policy (educational research project)."
+version = "1.1.0"
+description = "Retrieval-augmented question answering over Federal Reserve Beige Book reports: BM25 vs dense vs hybrid retrieval evaluation, citation-grounded generation and an explicit refusal policy (educational research project)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -15,7 +15,8 @@ keywords = [
   "information-retrieval",
   "bm25",
   "sentence-embeddings",
-  "sec-edgar",
+  "federal-reserve",
+  "beige-book",
   "evaluation",
 ]
 dependencies = [
@@ -52,6 +53,8 @@ select = ["E", "F", "W", "I", "B", "UP"]
 "scripts/run_study.py" = ["E402"]
 # Report renderer builds markdown templates (long table/format lines by design).
 "src/fin_rag_research_assistant/reporting.py" = ["E501"]
+# QA authoring holds verbatim evidence quotes that must not be rewrapped.
+"scripts/author_qa_set.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

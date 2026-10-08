@@ -17,7 +17,7 @@ def test_chunks_respect_max_tokens():
     chunks = chunk_text(text, "TEST", chunk_size=800, overlap=100)
     assert len(chunks) > 1
     assert all(c.n_tokens <= 800 for c in chunks)
-    assert all(c.filing_id == "TEST" for c in chunks)
+    assert all(c.doc_id == "TEST" for c in chunks)
 
 
 def test_no_truncation_loss_and_exact_overlap():

@@ -24,7 +24,7 @@ RETRIEVER_LABELS = {"bm25": "BM25 (sparse)", "dense": "Dense (MiniLM)", "hybrid"
 
 QA_METHODOLOGY_NOTE = (
     "Questions and gold locations were authored during corpus preparation by the "
-    "researcher; answers are verifiable in the cited filings (each gold chunk id "
+    "researcher; answers are verifiable in the cited Beige Book documents (each gold chunk id "
     "plus a verbatim evidence snippet is recorded in data/qa/qa_set.jsonl and "
     "machine-verified by the eval-retrieval stage). This is a study instrument, "
     "not a public benchmark."
@@ -145,22 +145,22 @@ def render_summary(all_metrics: dict) -> str:
         "Every number below is an actual output of the committed pipeline run._")
     add("")
 
-    add("## Filings (SEC EDGAR provenance)")
+    add("## Corpus provenance (Federal Reserve Beige Book, public domain)")
     add("")
-    add("| Ticker | Company | Form | Accession | Filed | Period | Primary document |")
-    add("| --- | --- | --- | --- | --- | --- | --- |")
-    for ticker, meta in prov["filings"].items():
-        add(f"| {ticker} | {meta['company']} | {meta['form']} | {meta['accession']} | {meta['filing_date']} "
-            f"| {meta['report_date']} | [html]({meta['document_url']}) |")
+    add("| Document | Title | Release | Cached HTML (bytes) | Source |")
+    add("| --- | --- | --- | --- | --- |")
+    for doc_id, meta in prov["documents"].items():
+        add(f"| {doc_id} | {meta['title']} | {meta['release']} | {meta['cached_html_bytes']} "
+            f"| [federalreserve.gov]({meta['url']}) |")
     add("")
 
     add("## Corpus & chunking")
     add("")
-    add("| Filing | Paragraphs | Characters | Chunks (800 tok) | Tokens in chunks |")
+    add("| Document | Paragraphs | Characters | Chunks (800 tok) | Tokens in chunks |")
     add("| --- | --- | --- | --- | --- |")
     index_stats = all_metrics.get("index", {})
-    for ticker, stats in index_stats.get("chunking_800", {}).items():
-        add(f"| {ticker} | {stats['n_paragraphs']} | {stats['n_chars']} | {stats['n_chunks']} | {stats['n_tokens']} |")
+    for doc_id, stats in index_stats.get("chunking_800", {}).items():
+        add(f"| {doc_id} | {stats['n_paragraphs']} | {stats['n_chars']} | {stats['n_chunks']} | {stats['n_tokens']} |")
     add("")
     total_chunks = sum(s["n_chunks"] for s in index_stats.get("chunking_800", {}).values())
     add(f"Corpus total: **{total_chunks} chunks** at 800-token windows with 100-token overlap "
@@ -244,7 +244,7 @@ def render_summary(all_metrics: dict) -> str:
 
     add("## Honest scope")
     add("")
-    add("This is an evaluation study of retrieval and grounded-generation components over two filings. "
+    add("This is an evaluation study of retrieval and grounded-generation components over 26 Beige Book documents. "
         "It is NOT a product, NOT financial advice, and the generation metrics are lexical/structural "
         "proxies — hallucination risk remains and no human evaluation panel was run (see README §14).")
     add("")
