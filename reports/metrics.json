@@ -1,0 +1,1122 @@
+{
+  "project": "fin-rag-research-assistant",
+  "generated_at": "2026-10-08T17:25:16Z",
+  "config": {
+    "chunk_size_tokens": 800,
+    "chunk_overlap_tokens": 100,
+    "dense_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "generation_model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "rrf_k": 60,
+    "random_seed": 42,
+    "gen_subset_qids": []
+  },
+  "provenance": {
+    "fetched_at": "2026-10-08",
+    "corpus_source": "Federal Reserve Beige Book (public domain, U.S. government)",
+    "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+    "documents": {
+      "202510-atlanta": {
+        "title": "Beige Book 202510 — Sixth District (Atlanta) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-atlanta.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 304,
+        "n_chars": 17413,
+        "cached_html_bytes": 88353
+      },
+      "202510-boston": {
+        "title": "Beige Book 202510 — First District (Boston) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-boston.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 299,
+        "n_chars": 17721,
+        "cached_html_bytes": 88604
+      },
+      "202510-chicago": {
+        "title": "Beige Book 202510 — Seventh District (Chicago) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-chicago.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17296,
+        "cached_html_bytes": 88189
+      },
+      "202510-cleveland": {
+        "title": "Beige Book 202510 — Fourth District (Cleveland) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-cleveland.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 302,
+        "n_chars": 17633,
+        "cached_html_bytes": 88529
+      },
+      "202510-dallas": {
+        "title": "Beige Book 202510 — Eleventh District (Dallas) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-dallas.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 304,
+        "n_chars": 17460,
+        "cached_html_bytes": 88420
+      },
+      "202510-kansas-city": {
+        "title": "Beige Book 202510 — Tenth District (Kansas City) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-kansas-city.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17696,
+        "cached_html_bytes": 88653
+      },
+      "202510-minneapolis": {
+        "title": "Beige Book 202510 — Ninth District (Minneapolis) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-minneapolis.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17067,
+        "cached_html_bytes": 87955
+      },
+      "202510-new-york": {
+        "title": "Beige Book 202510 — Second District (New York) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-new-york.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 304,
+        "n_chars": 17944,
+        "cached_html_bytes": 88866
+      },
+      "202510-philadelphia": {
+        "title": "Beige Book 202510 — Third District (Philadelphia) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-philadelphia.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 311,
+        "n_chars": 18096,
+        "cached_html_bytes": 89015
+      },
+      "202510-richmond": {
+        "title": "Beige Book 202510 — Fifth District (Richmond) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-richmond.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 300,
+        "n_chars": 17269,
+        "cached_html_bytes": 88162
+      },
+      "202510-san-francisco": {
+        "title": "Beige Book 202510 — Twelfth District (San Francisco) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-san-francisco.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 302,
+        "n_chars": 18017,
+        "cached_html_bytes": 89014
+      },
+      "202510-st-louis": {
+        "title": "Beige Book 202510 — Eighth District (St. Louis) (district report)",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-st-louis.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17427,
+        "cached_html_bytes": 88317
+      },
+      "202510-summary": {
+        "title": "Beige Book 202510 — National Summary",
+        "release": "202510",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-summary.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 312,
+        "n_chars": 18312,
+        "cached_html_bytes": 89461
+      },
+      "202601-atlanta": {
+        "title": "Beige Book 202601 — Sixth District (Atlanta) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-atlanta.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 303,
+        "n_chars": 17117,
+        "cached_html_bytes": 88054
+      },
+      "202601-boston": {
+        "title": "Beige Book 202601 — First District (Boston) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-boston.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 297,
+        "n_chars": 17530,
+        "cached_html_bytes": 88327
+      },
+      "202601-chicago": {
+        "title": "Beige Book 202601 — Seventh District (Chicago) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-chicago.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17156,
+        "cached_html_bytes": 88057
+      },
+      "202601-cleveland": {
+        "title": "Beige Book 202601 — Fourth District (Cleveland) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-cleveland.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 302,
+        "n_chars": 17975,
+        "cached_html_bytes": 88871
+      },
+      "202601-dallas": {
+        "title": "Beige Book 202601 — Eleventh District (Dallas) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-dallas.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 304,
+        "n_chars": 17862,
+        "cached_html_bytes": 88830
+      },
+      "202601-kansas-city": {
+        "title": "Beige Book 202601 — Tenth District (Kansas City) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-kansas-city.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17778,
+        "cached_html_bytes": 88704
+      },
+      "202601-minneapolis": {
+        "title": "Beige Book 202601 — Ninth District (Minneapolis) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-minneapolis.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 301,
+        "n_chars": 17169,
+        "cached_html_bytes": 88102
+      },
+      "202601-new-york": {
+        "title": "Beige Book 202601 — Second District (New York) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-new-york.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 304,
+        "n_chars": 17697,
+        "cached_html_bytes": 88595
+      },
+      "202601-philadelphia": {
+        "title": "Beige Book 202601 — Third District (Philadelphia) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-philadelphia.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 309,
+        "n_chars": 17937,
+        "cached_html_bytes": 88846
+      },
+      "202601-richmond": {
+        "title": "Beige Book 202601 — Fifth District (Richmond) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-richmond.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 300,
+        "n_chars": 16944,
+        "cached_html_bytes": 87813
+      },
+      "202601-san-francisco": {
+        "title": "Beige Book 202601 — Twelfth District (San Francisco) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-san-francisco.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 302,
+        "n_chars": 18339,
+        "cached_html_bytes": 89293
+      },
+      "202601-st-louis": {
+        "title": "Beige Book 202601 — Eighth District (St. Louis) (district report)",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-st-louis.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 300,
+        "n_chars": 16462,
+        "cached_html_bytes": 87361
+      },
+      "202601-summary": {
+        "title": "Beige Book 202601 — National Summary",
+        "release": "202601",
+        "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-summary.htm",
+        "user_agent": "Aydin Monavvari aydinmonavvari@users.noreply.github.com",
+        "n_paragraphs": 312,
+        "n_chars": 17774,
+        "cached_html_bytes": 88925
+      }
+    }
+  },
+  "index": {
+    "stage": "index",
+    "generated_at": "2026-10-08T17:18:31Z",
+    "chunking_800": {
+      "202510-atlanta": {
+        "n_paragraphs": 311,
+        "n_chars": 17413,
+        "n_chunks": 4,
+        "n_tokens": 2643
+      },
+      "202510-boston": {
+        "n_paragraphs": 306,
+        "n_chars": 17721,
+        "n_chunks": 4,
+        "n_tokens": 2707
+      },
+      "202510-chicago": {
+        "n_paragraphs": 308,
+        "n_chars": 17296,
+        "n_chunks": 4,
+        "n_tokens": 2647
+      },
+      "202510-cleveland": {
+        "n_paragraphs": 309,
+        "n_chars": 17633,
+        "n_chunks": 4,
+        "n_tokens": 2694
+      },
+      "202510-dallas": {
+        "n_paragraphs": 311,
+        "n_chars": 17460,
+        "n_chunks": 4,
+        "n_tokens": 2675
+      },
+      "202510-kansas-city": {
+        "n_paragraphs": 308,
+        "n_chars": 17696,
+        "n_chunks": 4,
+        "n_tokens": 2715
+      },
+      "202510-minneapolis": {
+        "n_paragraphs": 308,
+        "n_chars": 17067,
+        "n_chunks": 4,
+        "n_tokens": 2642
+      },
+      "202510-new-york": {
+        "n_paragraphs": 311,
+        "n_chars": 17944,
+        "n_chunks": 4,
+        "n_tokens": 2738
+      },
+      "202510-philadelphia": {
+        "n_paragraphs": 318,
+        "n_chars": 18096,
+        "n_chunks": 4,
+        "n_tokens": 2780
+      },
+      "202510-richmond": {
+        "n_paragraphs": 307,
+        "n_chars": 17269,
+        "n_chunks": 4,
+        "n_tokens": 2662
+      },
+      "202510-san-francisco": {
+        "n_paragraphs": 309,
+        "n_chars": 18017,
+        "n_chunks": 4,
+        "n_tokens": 2702
+      },
+      "202510-st-louis": {
+        "n_paragraphs": 308,
+        "n_chars": 17427,
+        "n_chunks": 4,
+        "n_tokens": 2672
+      },
+      "202510-summary": {
+        "n_paragraphs": 319,
+        "n_chars": 18312,
+        "n_chunks": 4,
+        "n_tokens": 2747
+      },
+      "202601-atlanta": {
+        "n_paragraphs": 310,
+        "n_chars": 17117,
+        "n_chunks": 4,
+        "n_tokens": 2598
+      },
+      "202601-boston": {
+        "n_paragraphs": 304,
+        "n_chars": 17530,
+        "n_chunks": 4,
+        "n_tokens": 2685
+      },
+      "202601-chicago": {
+        "n_paragraphs": 308,
+        "n_chars": 17156,
+        "n_chunks": 4,
+        "n_tokens": 2620
+      },
+      "202601-cleveland": {
+        "n_paragraphs": 309,
+        "n_chars": 17975,
+        "n_chunks": 4,
+        "n_tokens": 2703
+      },
+      "202601-dallas": {
+        "n_paragraphs": 311,
+        "n_chars": 17862,
+        "n_chunks": 4,
+        "n_tokens": 2758
+      },
+      "202601-kansas-city": {
+        "n_paragraphs": 308,
+        "n_chars": 17778,
+        "n_chunks": 4,
+        "n_tokens": 2682
+      },
+      "202601-minneapolis": {
+        "n_paragraphs": 308,
+        "n_chars": 17169,
+        "n_chunks": 4,
+        "n_tokens": 2634
+      },
+      "202601-new-york": {
+        "n_paragraphs": 311,
+        "n_chars": 17697,
+        "n_chunks": 4,
+        "n_tokens": 2700
+      },
+      "202601-philadelphia": {
+        "n_paragraphs": 316,
+        "n_chars": 17937,
+        "n_chunks": 4,
+        "n_tokens": 2803
+      },
+      "202601-richmond": {
+        "n_paragraphs": 307,
+        "n_chars": 16944,
+        "n_chunks": 4,
+        "n_tokens": 2644
+      },
+      "202601-san-francisco": {
+        "n_paragraphs": 309,
+        "n_chars": 18339,
+        "n_chunks": 4,
+        "n_tokens": 2732
+      },
+      "202601-st-louis": {
+        "n_paragraphs": 307,
+        "n_chars": 16462,
+        "n_chunks": 4,
+        "n_tokens": 2561
+      },
+      "202601-summary": {
+        "n_paragraphs": 319,
+        "n_chars": 17774,
+        "n_chunks": 4,
+        "n_tokens": 2700
+      }
+    },
+    "chunking_400": {
+      "202510-atlanta": {
+        "n_paragraphs": 311,
+        "n_chars": 17413,
+        "n_chunks": 8,
+        "n_tokens": 3043
+      },
+      "202510-boston": {
+        "n_paragraphs": 306,
+        "n_chars": 17721,
+        "n_chunks": 8,
+        "n_tokens": 3107
+      },
+      "202510-chicago": {
+        "n_paragraphs": 308,
+        "n_chars": 17296,
+        "n_chunks": 8,
+        "n_tokens": 3047
+      },
+      "202510-cleveland": {
+        "n_paragraphs": 309,
+        "n_chars": 17633,
+        "n_chunks": 8,
+        "n_tokens": 3094
+      },
+      "202510-dallas": {
+        "n_paragraphs": 311,
+        "n_chars": 17460,
+        "n_chunks": 8,
+        "n_tokens": 3075
+      },
+      "202510-kansas-city": {
+        "n_paragraphs": 308,
+        "n_chars": 17696,
+        "n_chunks": 8,
+        "n_tokens": 3115
+      },
+      "202510-minneapolis": {
+        "n_paragraphs": 308,
+        "n_chars": 17067,
+        "n_chunks": 8,
+        "n_tokens": 3042
+      },
+      "202510-new-york": {
+        "n_paragraphs": 311,
+        "n_chars": 17944,
+        "n_chunks": 8,
+        "n_tokens": 3138
+      },
+      "202510-philadelphia": {
+        "n_paragraphs": 318,
+        "n_chars": 18096,
+        "n_chunks": 8,
+        "n_tokens": 3180
+      },
+      "202510-richmond": {
+        "n_paragraphs": 307,
+        "n_chars": 17269,
+        "n_chunks": 8,
+        "n_tokens": 3062
+      },
+      "202510-san-francisco": {
+        "n_paragraphs": 309,
+        "n_chars": 18017,
+        "n_chunks": 8,
+        "n_tokens": 3102
+      },
+      "202510-st-louis": {
+        "n_paragraphs": 308,
+        "n_chars": 17427,
+        "n_chunks": 8,
+        "n_tokens": 3072
+      },
+      "202510-summary": {
+        "n_paragraphs": 319,
+        "n_chars": 18312,
+        "n_chunks": 8,
+        "n_tokens": 3147
+      },
+      "202601-atlanta": {
+        "n_paragraphs": 310,
+        "n_chars": 17117,
+        "n_chunks": 8,
+        "n_tokens": 2998
+      },
+      "202601-boston": {
+        "n_paragraphs": 304,
+        "n_chars": 17530,
+        "n_chunks": 8,
+        "n_tokens": 3085
+      },
+      "202601-chicago": {
+        "n_paragraphs": 308,
+        "n_chars": 17156,
+        "n_chunks": 8,
+        "n_tokens": 3020
+      },
+      "202601-cleveland": {
+        "n_paragraphs": 309,
+        "n_chars": 17975,
+        "n_chunks": 8,
+        "n_tokens": 3103
+      },
+      "202601-dallas": {
+        "n_paragraphs": 311,
+        "n_chars": 17862,
+        "n_chunks": 8,
+        "n_tokens": 3158
+      },
+      "202601-kansas-city": {
+        "n_paragraphs": 308,
+        "n_chars": 17778,
+        "n_chunks": 8,
+        "n_tokens": 3082
+      },
+      "202601-minneapolis": {
+        "n_paragraphs": 308,
+        "n_chars": 17169,
+        "n_chunks": 8,
+        "n_tokens": 3034
+      },
+      "202601-new-york": {
+        "n_paragraphs": 311,
+        "n_chars": 17697,
+        "n_chunks": 8,
+        "n_tokens": 3100
+      },
+      "202601-philadelphia": {
+        "n_paragraphs": 316,
+        "n_chars": 17937,
+        "n_chunks": 9,
+        "n_tokens": 3303
+      },
+      "202601-richmond": {
+        "n_paragraphs": 307,
+        "n_chars": 16944,
+        "n_chunks": 8,
+        "n_tokens": 3044
+      },
+      "202601-san-francisco": {
+        "n_paragraphs": 309,
+        "n_chars": 18339,
+        "n_chunks": 8,
+        "n_tokens": 3132
+      },
+      "202601-st-louis": {
+        "n_paragraphs": 307,
+        "n_chars": 16462,
+        "n_chunks": 8,
+        "n_tokens": 2961
+      },
+      "202601-summary": {
+        "n_paragraphs": 319,
+        "n_chars": 17774,
+        "n_chunks": 8,
+        "n_tokens": 3100
+      }
+    }
+  },
+  "retrieval": {
+    "stage": "eval-retrieval",
+    "generated_at": "2026-10-08T17:23:38Z",
+    "n_questions": 20,
+    "n_probes": 2,
+    "qa_methodology_note": "Questions and gold locations were authored during corpus preparation by the researcher; answers are verifiable in the cited Beige Book documents (each gold chunk id plus a verbatim evidence snippet is recorded in data/qa/qa_set.jsonl and machine-verified by the eval-retrieval stage). This is a study instrument, not a public benchmark.",
+    "gold_verification": {
+      "n_total": 20,
+      "n_verified": 20,
+      "missing_qids": []
+    },
+    "metrics": {
+      "bm25": {
+        "recall@1": 0.75,
+        "recall@5": 1.0,
+        "mrr": 0.8474999999999999,
+        "ndcg@5": 0.8855159313011154
+      },
+      "dense": {
+        "recall@1": 0.15,
+        "recall@5": 0.2,
+        "mrr": 0.1738888888888889,
+        "ndcg@5": 0.16934264036172708
+      },
+      "hybrid": {
+        "recall@1": 0.2,
+        "recall@5": 0.45,
+        "mrr": 0.3288095238095238,
+        "ndcg@5": 0.3511859507142915
+      },
+      "random": {
+        "recall@1": 0.0,
+        "recall@5": 0.0,
+        "mrr": 0.013333333333333332,
+        "ndcg@5": 0.0
+      }
+    },
+    "recall_curves": {
+      "bm25": {
+        "1": 0.75,
+        "2": 0.9,
+        "3": 0.9,
+        "4": 0.95,
+        "5": 1.0,
+        "6": 1.0,
+        "7": 1.0,
+        "8": 1.0,
+        "9": 1.0,
+        "10": 1.0
+      },
+      "dense": {
+        "1": 0.15,
+        "2": 0.15,
+        "3": 0.15,
+        "4": 0.15,
+        "5": 0.2,
+        "6": 0.25,
+        "7": 0.25,
+        "8": 0.25,
+        "9": 0.3,
+        "10": 0.3
+      },
+      "hybrid": {
+        "1": 0.2,
+        "2": 0.4,
+        "3": 0.45,
+        "4": 0.45,
+        "5": 0.45,
+        "6": 0.45,
+        "7": 0.5,
+        "8": 0.5,
+        "9": 0.5,
+        "10": 0.55
+      },
+      "random": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0,
+        "6": 0.05,
+        "7": 0.05,
+        "8": 0.05,
+        "9": 0.05,
+        "10": 0.1
+      }
+    },
+    "per_question_mrr": {
+      "bm25": {
+        "Q-01": 1.0,
+        "Q-02": 1.0,
+        "Q-03": 1.0,
+        "Q-04": 1.0,
+        "Q-05": 0.5,
+        "Q-06": 0.2,
+        "Q-07": 1.0,
+        "Q-08": 0.25,
+        "Q-09": 1.0,
+        "Q-10": 1.0,
+        "Q-11": 1.0,
+        "Q-12": 1.0,
+        "Q-13": 1.0,
+        "Q-14": 1.0,
+        "Q-15": 0.5,
+        "Q-16": 1.0,
+        "Q-17": 1.0,
+        "Q-18": 1.0,
+        "Q-19": 0.5,
+        "Q-20": 1.0
+      },
+      "dense": {
+        "Q-01": 0.0,
+        "Q-02": 0.0,
+        "Q-03": 0.0,
+        "Q-04": 0.0,
+        "Q-05": 1.0,
+        "Q-06": 0.0,
+        "Q-07": 0.0,
+        "Q-08": 0.1111111111111111,
+        "Q-09": 1.0,
+        "Q-10": 1.0,
+        "Q-11": 0.0,
+        "Q-12": 0.0,
+        "Q-13": 0.0,
+        "Q-14": 0.0,
+        "Q-15": 0.2,
+        "Q-16": 0.0,
+        "Q-17": 0.0,
+        "Q-18": 0.0,
+        "Q-19": 0.0,
+        "Q-20": 0.16666666666666666
+      },
+      "hybrid": {
+        "Q-01": 0.1,
+        "Q-02": 0.0,
+        "Q-03": 0.0,
+        "Q-04": 0.0,
+        "Q-05": 1.0,
+        "Q-06": 0.0,
+        "Q-07": 0.0,
+        "Q-08": 0.5,
+        "Q-09": 1.0,
+        "Q-10": 1.0,
+        "Q-11": 0.0,
+        "Q-12": 0.0,
+        "Q-13": 0.0,
+        "Q-14": 0.0,
+        "Q-15": 1.0,
+        "Q-16": 0.5,
+        "Q-17": 0.5,
+        "Q-18": 0.3333333333333333,
+        "Q-19": 0.14285714285714285,
+        "Q-20": 0.5
+      },
+      "random": {
+        "Q-01": 0.0,
+        "Q-02": 0.0,
+        "Q-03": 0.0,
+        "Q-04": 0.0,
+        "Q-05": 0.0,
+        "Q-06": 0.16666666666666666,
+        "Q-07": 0.0,
+        "Q-08": 0.0,
+        "Q-09": 0.0,
+        "Q-10": 0.1,
+        "Q-11": 0.0,
+        "Q-12": 0.0,
+        "Q-13": 0.0,
+        "Q-14": 0.0,
+        "Q-15": 0.0,
+        "Q-16": 0.0,
+        "Q-17": 0.0,
+        "Q-18": 0.0,
+        "Q-19": 0.0,
+        "Q-20": 0.0
+      }
+    },
+    "question_ids": [
+      "Q-01",
+      "Q-02",
+      "Q-03",
+      "Q-04",
+      "Q-05",
+      "Q-06",
+      "Q-07",
+      "Q-08",
+      "Q-09",
+      "Q-10",
+      "Q-11",
+      "Q-12",
+      "Q-13",
+      "Q-14",
+      "Q-15",
+      "Q-16",
+      "Q-17",
+      "Q-18",
+      "Q-19",
+      "Q-20"
+    ],
+    "refusal": {
+      "tau": 0.369,
+      "in_scope_n": 20,
+      "in_scope_passed": 20,
+      "in_scope_false_refusal_rate": 0.0,
+      "probe_n": 2,
+      "probes_refused": 0,
+      "probe_refusal_rate": 0.0,
+      "in_scope_score_min": 0.3892184793949127,
+      "in_scope_score_max": 0.7078448534011841,
+      "probe_score_min": 0.4386046528816223,
+      "probe_score_max": 0.5833994746208191,
+      "in_scope_scores": [
+        0.5598,
+        0.5833,
+        0.5852,
+        0.5013,
+        0.5517,
+        0.4702,
+        0.5307,
+        0.5519,
+        0.7078,
+        0.3892,
+        0.5795,
+        0.573,
+        0.5223,
+        0.6375,
+        0.4635,
+        0.4578,
+        0.4811,
+        0.4094,
+        0.567,
+        0.5982
+      ],
+      "probe_scores": [
+        0.4386,
+        0.5834
+      ]
+    },
+    "sensitivity_400": {
+      "chunk_size": 400,
+      "metrics": {
+        "bm25": {
+          "recall@1": 0.8,
+          "recall@5": 1.0,
+          "mrr": 0.9,
+          "ndcg@5": 0.9261859507142916
+        },
+        "dense": {
+          "recall@1": 0.25,
+          "recall@5": 0.55,
+          "mrr": 0.34750000000000003,
+          "ndcg@5": 0.3970370994298818
+        },
+        "hybrid": {
+          "recall@1": 0.4,
+          "recall@5": 0.65,
+          "mrr": 0.5016666666666667,
+          "ndcg@5": 0.5389821033974458
+        },
+        "random": {
+          "recall@1": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        }
+      },
+      "gold_mapping": {
+        "n_questions": 20,
+        "n_mapped": 20,
+        "n_exact_evidence_match": 20,
+        "n_unmapped": 0,
+        "unmapped_qids": []
+      }
+    }
+  },
+  "generation": {
+    "stage": "eval-generation",
+    "generated_at": "2026-10-08T17:24:58Z",
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "retriever_for_excerpts": "hybrid",
+    "gen_top_k": 3,
+    "max_new_tokens": 160,
+    "decoding": "greedy (do_sample=False)",
+    "metrics_are_proxies": true,
+    "results": [
+      {
+        "qid": "Q-01",
+        "question": "In the October 2025 Beige Book, how many Federal Reserve Districts reported slight to modest growth in overall economic activity?",
+        "retrieved_chunk_ids": [
+          "202510-chicago:c0003:503aeb96",
+          "202601-philadelphia:c0003:4c5e832e",
+          "202510-kansas-city:c0003:40c932dd"
+        ],
+        "raw_answer": "[2]",
+        "citations": [
+          2
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 2.0751300449992414,
+        "n_prompt_chars": 6661,
+        "type": "question",
+        "expected_answer": "Three Districts",
+        "dense_top_score": 0.5597590208053589,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-02",
+        "question": "Why were auto sales boosted in some Districts ahead of the end of September, according to the October 2025 report?",
+        "retrieved_chunk_ids": [
+          "202510-kansas-city:c0002:fd74c084",
+          "202510-atlanta:c0002:ceeee5de",
+          "202601-chicago:c0002:614925ac"
+        ],
+        "raw_answer": "[2]",
+        "citations": [
+          2
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 4.12085674500122,
+        "n_prompt_chars": 16776,
+        "type": "question",
+        "expected_answer": "Strong demand for electric vehicles ahead of the expiration of a federal tax credit at the end of September",
+        "dense_top_score": 0.5832757949829102,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-03",
+        "question": "Which sectors' labor supply was reportedly strained in several Districts due to recent changes to immigration policies?",
+        "retrieved_chunk_ids": [
+          "202510-summary:c0002:5122744c",
+          "202510-san-francisco:c0002:945fcee2",
+          "202601-summary:c0002:6bb0f04b"
+        ],
+        "raw_answer": "[1]",
+        "citations": [
+          1
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 4.0006683969986625,
+        "n_prompt_chars": 17203,
+        "type": "question",
+        "expected_answer": "Hospitality, agriculture, construction, and manufacturing",
+        "dense_top_score": 0.5852203369140625,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-04",
+        "question": "According to the October 2025 National Summary, what intensified labor cost pressures in recent weeks?",
+        "retrieved_chunk_ids": [
+          "202510-summary:c0002:5122744c",
+          "202510-boston:c0003:32e50a5c",
+          "202601-summary:c0002:6bb0f04b"
+        ],
+        "raw_answer": "[2]",
+        "citations": [
+          2
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 3.576764939003624,
+        "n_prompt_chars": 13625,
+        "type": "question",
+        "expected_answer": "Outsized increases in employer-sponsored health insurance expenses",
+        "dense_top_score": 0.5013213753700256,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-05",
+        "question": "Which materials saw prices pushed down by waning demand, and in which two Districts did this occur?",
+        "retrieved_chunk_ids": [
+          "202510-summary:c0002:5122744c",
+          "202601-summary:c0002:6bb0f04b",
+          "202510-richmond:c0002:629a7930"
+        ],
+        "raw_answer": "[2] [3]",
+        "citations": [
+          2,
+          3
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 4.320116082002642,
+        "n_prompt_chars": 16886,
+        "type": "question",
+        "expected_answer": "Steel in the Sixth District and lumber in the Twelfth District",
+        "dense_top_score": 0.5517035722732544,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-06",
+        "question": "What did Boston District contacts report about commercial real estate activity in the October 2025 Beige Book?",
+        "retrieved_chunk_ids": [
+          "202601-philadelphia:c0003:4c5e832e",
+          "202601-summary:c0002:6bb0f04b",
+          "202510-summary:c0003:2a11fe58"
+        ],
+        "raw_answer": "[2] Some contacts that initially absorbed tariff-related costs were beginning to pass them on to customers as pre-tariff inventories became depleted or as pressures to preserve margins grew more acute.",
+        "citations": [
+          2
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.1308411214953271,
+        "latency_s": 6.7162521589998505,
+        "n_prompt_chars": 10775,
+        "type": "question",
+        "expected_answer": "Commercial real estate activity increased slightly, beating expectations",
+        "dense_top_score": 0.470193088054657,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-07",
+        "question": "What share of hospitality and tourism firms in the Minneapolis District reported wage increases of three percent or more?",
+        "retrieved_chunk_ids": [
+          "202601-minneapolis:c0002:7e8956fd",
+          "202510-boston:c0002:f2960223",
+          "202601-summary:c0002:6bb0f04b"
+        ],
+        "raw_answer": "[1]",
+        "citations": [
+          1
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 3.9552227199965273,
+        "n_prompt_chars": 16622,
+        "type": "question",
+        "expected_answer": "Nearly three-quarters",
+        "dense_top_score": 0.5306753516197205,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "Q-08",
+        "question": "What did bankers note about consumer loan portfolios in the Tenth District in the October 2025 report?",
+        "retrieved_chunk_ids": [
+          "202601-philadelphia:c0003:4c5e832e",
+          "202510-kansas-city:c0001:948fec7e",
+          "202510-new-york:c0001:61f44383"
+        ],
+        "raw_answer": "[2] Some construction employment also faced headwinds in certain parts of the District. Most contacts indicated any impending layoffs will be modest and meant to right-size staffing levels with slightly softer demand conditions to maintain profitability.",
+        "citations": [
+          2
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.14754098360655737,
+        "latency_s": 8.503519370002323,
+        "n_prompt_chars": 13990,
+        "type": "question",
+        "expected_answer": "Consumer loan portfolios deteriorated moderately",
+        "dense_top_score": 0.551852822303772,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "OOS-01",
+        "question": "What target range for the federal funds rate did the FOMC announce at its January 2026 meeting?",
+        "retrieved_chunk_ids": [
+          "202601-kansas-city:c0003:c1f65c82",
+          "202510-dallas:c0003:5021631d",
+          "202510-cleveland:c0003:12a8f80b"
+        ],
+        "raw_answer": "[1] The FOMC announced a target range of 0.25% to 0.50% for the federal funds rate at its January 2026 meeting.",
+        "citations": [
+          1
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0449438202247191,
+        "latency_s": 6.411655530995631,
+        "n_prompt_chars": 5887,
+        "type": "refusal_probe",
+        "expected_answer": null,
+        "dense_top_score": 0.4386046528816223,
+        "policy_decision": "answer"
+      },
+      {
+        "qid": "OOS-02",
+        "question": "How many employees did the Federal Reserve Board employ in 2026?",
+        "retrieved_chunk_ids": [
+          "202601-minneapolis:c0003:91da40b7",
+          "202510-chicago:c0003:503aeb96",
+          "202601-cleveland:c0003:509671dd"
+        ],
+        "raw_answer": "[3]",
+        "citations": [
+          3
+        ],
+        "citation_valid": true,
+        "used_refusal": false,
+        "groundedness_f1": 0.0,
+        "latency_s": 1.803008264003438,
+        "n_prompt_chars": 5520,
+        "type": "refusal_probe",
+        "expected_answer": null,
+        "dense_top_score": 0.5833994746208191,
+        "policy_decision": "answer"
+      }
+    ],
+    "summary": {
+      "n_questions": 8,
+      "n_refusal_probes": 2,
+      "n_citation_valid": 8,
+      "citation_validity_rate": 1.0,
+      "groundedness_mean": 0.034797763137735555,
+      "groundedness_median": 0.0,
+      "refusal_probes_correct": 0,
+      "total_latency_s": 45.48319425200316,
+      "mean_latency_s": 4.548319425200316
+    },
+    "refusal_probes": {
+      "rows": [
+        {
+          "qid": "OOS-01",
+          "expected_refusal": true,
+          "used_refusal": false,
+          "correct": false
+        },
+        {
+          "qid": "OOS-02",
+          "expected_refusal": true,
+          "used_refusal": false,
+          "correct": false
+        }
+      ],
+      "n": 2,
+      "n_correct": 0,
+      "accuracy": 0.0
+    },
+    "examples": {
+      "good": [
+        "Q-08",
+        "Q-06"
+      ],
+      "flawed": [
+        "Q-01",
+        "Q-02"
+      ]
+    }
+  }
+}

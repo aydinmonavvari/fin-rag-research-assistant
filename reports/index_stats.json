@@ -1,0 +1,320 @@
+{
+  "stage": "index",
+  "generated_at": "2026-10-08T17:18:31Z",
+  "chunking_800": {
+    "202510-atlanta": {
+      "n_paragraphs": 311,
+      "n_chars": 17413,
+      "n_chunks": 4,
+      "n_tokens": 2643
+    },
+    "202510-boston": {
+      "n_paragraphs": 306,
+      "n_chars": 17721,
+      "n_chunks": 4,
+      "n_tokens": 2707
+    },
+    "202510-chicago": {
+      "n_paragraphs": 308,
+      "n_chars": 17296,
+      "n_chunks": 4,
+      "n_tokens": 2647
+    },
+    "202510-cleveland": {
+      "n_paragraphs": 309,
+      "n_chars": 17633,
+      "n_chunks": 4,
+      "n_tokens": 2694
+    },
+    "202510-dallas": {
+      "n_paragraphs": 311,
+      "n_chars": 17460,
+      "n_chunks": 4,
+      "n_tokens": 2675
+    },
+    "202510-kansas-city": {
+      "n_paragraphs": 308,
+      "n_chars": 17696,
+      "n_chunks": 4,
+      "n_tokens": 2715
+    },
+    "202510-minneapolis": {
+      "n_paragraphs": 308,
+      "n_chars": 17067,
+      "n_chunks": 4,
+      "n_tokens": 2642
+    },
+    "202510-new-york": {
+      "n_paragraphs": 311,
+      "n_chars": 17944,
+      "n_chunks": 4,
+      "n_tokens": 2738
+    },
+    "202510-philadelphia": {
+      "n_paragraphs": 318,
+      "n_chars": 18096,
+      "n_chunks": 4,
+      "n_tokens": 2780
+    },
+    "202510-richmond": {
+      "n_paragraphs": 307,
+      "n_chars": 17269,
+      "n_chunks": 4,
+      "n_tokens": 2662
+    },
+    "202510-san-francisco": {
+      "n_paragraphs": 309,
+      "n_chars": 18017,
+      "n_chunks": 4,
+      "n_tokens": 2702
+    },
+    "202510-st-louis": {
+      "n_paragraphs": 308,
+      "n_chars": 17427,
+      "n_chunks": 4,
+      "n_tokens": 2672
+    },
+    "202510-summary": {
+      "n_paragraphs": 319,
+      "n_chars": 18312,
+      "n_chunks": 4,
+      "n_tokens": 2747
+    },
+    "202601-atlanta": {
+      "n_paragraphs": 310,
+      "n_chars": 17117,
+      "n_chunks": 4,
+      "n_tokens": 2598
+    },
+    "202601-boston": {
+      "n_paragraphs": 304,
+      "n_chars": 17530,
+      "n_chunks": 4,
+      "n_tokens": 2685
+    },
+    "202601-chicago": {
+      "n_paragraphs": 308,
+      "n_chars": 17156,
+      "n_chunks": 4,
+      "n_tokens": 2620
+    },
+    "202601-cleveland": {
+      "n_paragraphs": 309,
+      "n_chars": 17975,
+      "n_chunks": 4,
+      "n_tokens": 2703
+    },
+    "202601-dallas": {
+      "n_paragraphs": 311,
+      "n_chars": 17862,
+      "n_chunks": 4,
+      "n_tokens": 2758
+    },
+    "202601-kansas-city": {
+      "n_paragraphs": 308,
+      "n_chars": 17778,
+      "n_chunks": 4,
+      "n_tokens": 2682
+    },
+    "202601-minneapolis": {
+      "n_paragraphs": 308,
+      "n_chars": 17169,
+      "n_chunks": 4,
+      "n_tokens": 2634
+    },
+    "202601-new-york": {
+      "n_paragraphs": 311,
+      "n_chars": 17697,
+      "n_chunks": 4,
+      "n_tokens": 2700
+    },
+    "202601-philadelphia": {
+      "n_paragraphs": 316,
+      "n_chars": 17937,
+      "n_chunks": 4,
+      "n_tokens": 2803
+    },
+    "202601-richmond": {
+      "n_paragraphs": 307,
+      "n_chars": 16944,
+      "n_chunks": 4,
+      "n_tokens": 2644
+    },
+    "202601-san-francisco": {
+      "n_paragraphs": 309,
+      "n_chars": 18339,
+      "n_chunks": 4,
+      "n_tokens": 2732
+    },
+    "202601-st-louis": {
+      "n_paragraphs": 307,
+      "n_chars": 16462,
+      "n_chunks": 4,
+      "n_tokens": 2561
+    },
+    "202601-summary": {
+      "n_paragraphs": 319,
+      "n_chars": 17774,
+      "n_chunks": 4,
+      "n_tokens": 2700
+    }
+  },
+  "chunking_400": {
+    "202510-atlanta": {
+      "n_paragraphs": 311,
+      "n_chars": 17413,
+      "n_chunks": 8,
+      "n_tokens": 3043
+    },
+    "202510-boston": {
+      "n_paragraphs": 306,
+      "n_chars": 17721,
+      "n_chunks": 8,
+      "n_tokens": 3107
+    },
+    "202510-chicago": {
+      "n_paragraphs": 308,
+      "n_chars": 17296,
+      "n_chunks": 8,
+      "n_tokens": 3047
+    },
+    "202510-cleveland": {
+      "n_paragraphs": 309,
+      "n_chars": 17633,
+      "n_chunks": 8,
+      "n_tokens": 3094
+    },
+    "202510-dallas": {
+      "n_paragraphs": 311,
+      "n_chars": 17460,
+      "n_chunks": 8,
+      "n_tokens": 3075
+    },
+    "202510-kansas-city": {
+      "n_paragraphs": 308,
+      "n_chars": 17696,
+      "n_chunks": 8,
+      "n_tokens": 3115
+    },
+    "202510-minneapolis": {
+      "n_paragraphs": 308,
+      "n_chars": 17067,
+      "n_chunks": 8,
+      "n_tokens": 3042
+    },
+    "202510-new-york": {
+      "n_paragraphs": 311,
+      "n_chars": 17944,
+      "n_chunks": 8,
+      "n_tokens": 3138
+    },
+    "202510-philadelphia": {
+      "n_paragraphs": 318,
+      "n_chars": 18096,
+      "n_chunks": 8,
+      "n_tokens": 3180
+    },
+    "202510-richmond": {
+      "n_paragraphs": 307,
+      "n_chars": 17269,
+      "n_chunks": 8,
+      "n_tokens": 3062
+    },
+    "202510-san-francisco": {
+      "n_paragraphs": 309,
+      "n_chars": 18017,
+      "n_chunks": 8,
+      "n_tokens": 3102
+    },
+    "202510-st-louis": {
+      "n_paragraphs": 308,
+      "n_chars": 17427,
+      "n_chunks": 8,
+      "n_tokens": 3072
+    },
+    "202510-summary": {
+      "n_paragraphs": 319,
+      "n_chars": 18312,
+      "n_chunks": 8,
+      "n_tokens": 3147
+    },
+    "202601-atlanta": {
+      "n_paragraphs": 310,
+      "n_chars": 17117,
+      "n_chunks": 8,
+      "n_tokens": 2998
+    },
+    "202601-boston": {
+      "n_paragraphs": 304,
+      "n_chars": 17530,
+      "n_chunks": 8,
+      "n_tokens": 3085
+    },
+    "202601-chicago": {
+      "n_paragraphs": 308,
+      "n_chars": 17156,
+      "n_chunks": 8,
+      "n_tokens": 3020
+    },
+    "202601-cleveland": {
+      "n_paragraphs": 309,
+      "n_chars": 17975,
+      "n_chunks": 8,
+      "n_tokens": 3103
+    },
+    "202601-dallas": {
+      "n_paragraphs": 311,
+      "n_chars": 17862,
+      "n_chunks": 8,
+      "n_tokens": 3158
+    },
+    "202601-kansas-city": {
+      "n_paragraphs": 308,
+      "n_chars": 17778,
+      "n_chunks": 8,
+      "n_tokens": 3082
+    },
+    "202601-minneapolis": {
+      "n_paragraphs": 308,
+      "n_chars": 17169,
+      "n_chunks": 8,
+      "n_tokens": 3034
+    },
+    "202601-new-york": {
+      "n_paragraphs": 311,
+      "n_chars": 17697,
+      "n_chunks": 8,
+      "n_tokens": 3100
+    },
+    "202601-philadelphia": {
+      "n_paragraphs": 316,
+      "n_chars": 17937,
+      "n_chunks": 9,
+      "n_tokens": 3303
+    },
+    "202601-richmond": {
+      "n_paragraphs": 307,
+      "n_chars": 16944,
+      "n_chunks": 8,
+      "n_tokens": 3044
+    },
+    "202601-san-francisco": {
+      "n_paragraphs": 309,
+      "n_chars": 18339,
+      "n_chunks": 8,
+      "n_tokens": 3132
+    },
+    "202601-st-louis": {
+      "n_paragraphs": 307,
+      "n_chars": 16462,
+      "n_chunks": 8,
+      "n_tokens": 2961
+    },
+    "202601-summary": {
+      "n_paragraphs": 319,
+      "n_chars": 17774,
+      "n_chunks": 8,
+      "n_tokens": 3100
+    }
+  }
+}

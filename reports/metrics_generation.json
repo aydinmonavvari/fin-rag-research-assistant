@@ -1,0 +1,273 @@
+{
+  "stage": "eval-generation",
+  "generated_at": "2026-10-08T17:24:58Z",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "retriever_for_excerpts": "hybrid",
+  "gen_top_k": 3,
+  "max_new_tokens": 160,
+  "decoding": "greedy (do_sample=False)",
+  "metrics_are_proxies": true,
+  "results": [
+    {
+      "qid": "Q-01",
+      "question": "In the October 2025 Beige Book, how many Federal Reserve Districts reported slight to modest growth in overall economic activity?",
+      "retrieved_chunk_ids": [
+        "202510-chicago:c0003:503aeb96",
+        "202601-philadelphia:c0003:4c5e832e",
+        "202510-kansas-city:c0003:40c932dd"
+      ],
+      "raw_answer": "[2]",
+      "citations": [
+        2
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 2.0751300449992414,
+      "n_prompt_chars": 6661,
+      "type": "question",
+      "expected_answer": "Three Districts",
+      "dense_top_score": 0.5597590208053589,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-02",
+      "question": "Why were auto sales boosted in some Districts ahead of the end of September, according to the October 2025 report?",
+      "retrieved_chunk_ids": [
+        "202510-kansas-city:c0002:fd74c084",
+        "202510-atlanta:c0002:ceeee5de",
+        "202601-chicago:c0002:614925ac"
+      ],
+      "raw_answer": "[2]",
+      "citations": [
+        2
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 4.12085674500122,
+      "n_prompt_chars": 16776,
+      "type": "question",
+      "expected_answer": "Strong demand for electric vehicles ahead of the expiration of a federal tax credit at the end of September",
+      "dense_top_score": 0.5832757949829102,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-03",
+      "question": "Which sectors' labor supply was reportedly strained in several Districts due to recent changes to immigration policies?",
+      "retrieved_chunk_ids": [
+        "202510-summary:c0002:5122744c",
+        "202510-san-francisco:c0002:945fcee2",
+        "202601-summary:c0002:6bb0f04b"
+      ],
+      "raw_answer": "[1]",
+      "citations": [
+        1
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 4.0006683969986625,
+      "n_prompt_chars": 17203,
+      "type": "question",
+      "expected_answer": "Hospitality, agriculture, construction, and manufacturing",
+      "dense_top_score": 0.5852203369140625,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-04",
+      "question": "According to the October 2025 National Summary, what intensified labor cost pressures in recent weeks?",
+      "retrieved_chunk_ids": [
+        "202510-summary:c0002:5122744c",
+        "202510-boston:c0003:32e50a5c",
+        "202601-summary:c0002:6bb0f04b"
+      ],
+      "raw_answer": "[2]",
+      "citations": [
+        2
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 3.576764939003624,
+      "n_prompt_chars": 13625,
+      "type": "question",
+      "expected_answer": "Outsized increases in employer-sponsored health insurance expenses",
+      "dense_top_score": 0.5013213753700256,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-05",
+      "question": "Which materials saw prices pushed down by waning demand, and in which two Districts did this occur?",
+      "retrieved_chunk_ids": [
+        "202510-summary:c0002:5122744c",
+        "202601-summary:c0002:6bb0f04b",
+        "202510-richmond:c0002:629a7930"
+      ],
+      "raw_answer": "[2] [3]",
+      "citations": [
+        2,
+        3
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 4.320116082002642,
+      "n_prompt_chars": 16886,
+      "type": "question",
+      "expected_answer": "Steel in the Sixth District and lumber in the Twelfth District",
+      "dense_top_score": 0.5517035722732544,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-06",
+      "question": "What did Boston District contacts report about commercial real estate activity in the October 2025 Beige Book?",
+      "retrieved_chunk_ids": [
+        "202601-philadelphia:c0003:4c5e832e",
+        "202601-summary:c0002:6bb0f04b",
+        "202510-summary:c0003:2a11fe58"
+      ],
+      "raw_answer": "[2] Some contacts that initially absorbed tariff-related costs were beginning to pass them on to customers as pre-tariff inventories became depleted or as pressures to preserve margins grew more acute.",
+      "citations": [
+        2
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.1308411214953271,
+      "latency_s": 6.7162521589998505,
+      "n_prompt_chars": 10775,
+      "type": "question",
+      "expected_answer": "Commercial real estate activity increased slightly, beating expectations",
+      "dense_top_score": 0.470193088054657,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-07",
+      "question": "What share of hospitality and tourism firms in the Minneapolis District reported wage increases of three percent or more?",
+      "retrieved_chunk_ids": [
+        "202601-minneapolis:c0002:7e8956fd",
+        "202510-boston:c0002:f2960223",
+        "202601-summary:c0002:6bb0f04b"
+      ],
+      "raw_answer": "[1]",
+      "citations": [
+        1
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 3.9552227199965273,
+      "n_prompt_chars": 16622,
+      "type": "question",
+      "expected_answer": "Nearly three-quarters",
+      "dense_top_score": 0.5306753516197205,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "Q-08",
+      "question": "What did bankers note about consumer loan portfolios in the Tenth District in the October 2025 report?",
+      "retrieved_chunk_ids": [
+        "202601-philadelphia:c0003:4c5e832e",
+        "202510-kansas-city:c0001:948fec7e",
+        "202510-new-york:c0001:61f44383"
+      ],
+      "raw_answer": "[2] Some construction employment also faced headwinds in certain parts of the District. Most contacts indicated any impending layoffs will be modest and meant to right-size staffing levels with slightly softer demand conditions to maintain profitability.",
+      "citations": [
+        2
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.14754098360655737,
+      "latency_s": 8.503519370002323,
+      "n_prompt_chars": 13990,
+      "type": "question",
+      "expected_answer": "Consumer loan portfolios deteriorated moderately",
+      "dense_top_score": 0.551852822303772,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "OOS-01",
+      "question": "What target range for the federal funds rate did the FOMC announce at its January 2026 meeting?",
+      "retrieved_chunk_ids": [
+        "202601-kansas-city:c0003:c1f65c82",
+        "202510-dallas:c0003:5021631d",
+        "202510-cleveland:c0003:12a8f80b"
+      ],
+      "raw_answer": "[1] The FOMC announced a target range of 0.25% to 0.50% for the federal funds rate at its January 2026 meeting.",
+      "citations": [
+        1
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0449438202247191,
+      "latency_s": 6.411655530995631,
+      "n_prompt_chars": 5887,
+      "type": "refusal_probe",
+      "expected_answer": null,
+      "dense_top_score": 0.4386046528816223,
+      "policy_decision": "answer"
+    },
+    {
+      "qid": "OOS-02",
+      "question": "How many employees did the Federal Reserve Board employ in 2026?",
+      "retrieved_chunk_ids": [
+        "202601-minneapolis:c0003:91da40b7",
+        "202510-chicago:c0003:503aeb96",
+        "202601-cleveland:c0003:509671dd"
+      ],
+      "raw_answer": "[3]",
+      "citations": [
+        3
+      ],
+      "citation_valid": true,
+      "used_refusal": false,
+      "groundedness_f1": 0.0,
+      "latency_s": 1.803008264003438,
+      "n_prompt_chars": 5520,
+      "type": "refusal_probe",
+      "expected_answer": null,
+      "dense_top_score": 0.5833994746208191,
+      "policy_decision": "answer"
+    }
+  ],
+  "summary": {
+    "n_questions": 8,
+    "n_refusal_probes": 2,
+    "n_citation_valid": 8,
+    "citation_validity_rate": 1.0,
+    "groundedness_mean": 0.034797763137735555,
+    "groundedness_median": 0.0,
+    "refusal_probes_correct": 0,
+    "total_latency_s": 45.48319425200316,
+    "mean_latency_s": 4.548319425200316
+  },
+  "refusal_probes": {
+    "rows": [
+      {
+        "qid": "OOS-01",
+        "expected_refusal": true,
+        "used_refusal": false,
+        "correct": false
+      },
+      {
+        "qid": "OOS-02",
+        "expected_refusal": true,
+        "used_refusal": false,
+        "correct": false
+      }
+    ],
+    "n": 2,
+    "n_correct": 0,
+    "accuracy": 0.0
+  },
+  "examples": {
+    "good": [
+      "Q-08",
+      "Q-06"
+    ],
+    "flawed": [
+      "Q-01",
+      "Q-02"
+    ]
+  }
+}
