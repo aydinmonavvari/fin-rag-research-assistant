@@ -1,8 +1,10 @@
 # fin-rag-research-assistant — study summary
 
-_Generated 2026-10-08 17:25 UTC by `scripts/run_study.py report`. Every number below is an actual output of the committed pipeline run._
+_Generated 2026-10-08 22:12 UTC by `scripts/run_study.py report`. Every number below is an actual output of the committed pipeline run._
 
 ## Corpus provenance (Federal Reserve Beige Book, public domain)
+
+Snapshot pin: `data/corpus_manifest.json` (sha256, 26 documents) — verified against the cache before every evaluation stage. If federalreserve.gov revises a page, the hash check fails loudly.
 
 | Document | Title | Release | Cached HTML (bytes) | Source |
 | --- | --- | --- | --- | --- |
@@ -66,9 +68,13 @@ _Generated 2026-10-08 17:25 UTC by `scripts/run_study.py report`. Every number b
 
 Corpus total: **104 chunks** at 800-token windows with 100-token overlap (a 'token' is a whitespace-delimited word — documented approximation).
 
-## Retrieval evaluation (20 authored questions)
+## QA design (authorship disclosed)
 
-> Questions and gold locations were authored during corpus preparation by the researcher; answers are verifiable in the cited Beige Book documents (each gold chunk id plus a verbatim evidence snippet is recorded in data/qa/qa_set.jsonl and machine-verified by the eval-retrieval stage). This is a study instrument, not a public benchmark.
+> Both QA sets were authored by the researcher (single builder; there are no external annotators). SET A (dev, data/qa/qa_set_dev.jsonl: 20 in-scope + 2 probes) was written after reading the parsed Beige Book corpus and is used ONLY for refusal-threshold selection and debugging. SET B (held-out, data/qa/qa_set_eval.jsonl: 12 in-scope + 2 probes) was authored after SET A was frozen, using paraphrased wording to reduce overlap; it is never used for threshold selection. Answers are verifiable in the cited Beige Book documents (each in-scope item records a gold chunk id plus a verbatim evidence snippet, machine-verified by the eval-retrieval stage). These are study instruments, not public benchmarks.
+
+## Retrieval evaluation — SET A (dev) — used for tau selection and debugging only; **NOT a final evaluation**.
+
+Questions: **20** in-scope + 2 out-of-scope probes (`data/qa/qa_set_dev.jsonl`). Gold verification: 20/20 evidence snippets verified.
 
 | Retriever | Recall@1 | Recall@5 | MRR | nDCG@5 |
 | --- | --- | --- | --- | --- |
@@ -77,11 +83,25 @@ Corpus total: **104 chunks** at 800-token windows with 100-token overlap (a 'tok
 | Hybrid (RRF) | 0.200 | 0.450 | 0.329 | 0.351 |
 | Random control | 0.000 | 0.000 | 0.013 | 0.000 |
 
+## Retrieval evaluation — SET B (held-out) — **final reported retrieval evaluation**; never used for threshold selection.
+
+Questions: **12** in-scope + 2 out-of-scope probes (`data/qa/qa_set_eval.jsonl`). Gold verification: 12/12 evidence snippets verified.
+
+| Retriever | Recall@1 | Recall@5 | MRR | nDCG@5 |
+| --- | --- | --- | --- | --- |
+| BM25 (sparse) | 0.417 | 0.833 | 0.586 | 0.641 |
+| Dense (MiniLM) | 0.167 | 0.333 | 0.211 | 0.241 |
+| Hybrid (RRF) | 0.333 | 0.417 | 0.364 | 0.366 |
+| Random control | 0.000 | 0.083 | 0.021 | 0.036 |
+
 ## Refusal policy
 
-Chosen threshold **tau = 0.369** on the top-1 dense cosine distribution (20 in-scope questions vs 2 out-of-scope/off-domain probes). In-scope questions passing the gate: 20/20 (false-refusal rate 0.000); probes refused: 0/2 (probe refusal rate 0.000).
+Chosen threshold **tau = 0.369** — selected ONCE on the SET A (dev) top-1 dense cosine distribution (20 in-scope questions vs 2 out-of-scope probes), via the clean-gap rule in `policy.py` (overlap fallback: tau = in-scope min − margin 0.02; NOT a percentile rule). The same tau is then applied unchanged to each split:
 
-## Chunk-size sensitivity (400 vs 800 tokens)
+- **SET A (dev, in-sample sanity)**: false refusals 20/20 (rate 0.000); probes refused 0/2 (rate 0.000).
+- **SET B (held-out, headline)**: false refusals 12/12 (rate 0.000); probes refused 0/2 (rate 0.000).
+
+## Chunk-size sensitivity (400 vs 800 tokens) — dev
 
 | Retriever | Recall@1 (400) | Recall@5 (400) | MRR (400) | nDCG@5 (400) |
 | --- | --- | --- | --- | --- |
@@ -92,46 +112,60 @@ Chosen threshold **tau = 0.369** on the top-1 dense cosine distribution (20 in-s
 
 Gold chunks re-mapped to the 400-token granularity: 20/20 (exact evidence substring: 20; unmapped: 0).
 
-## Grounded generation (Qwen2.5-0.5B-Instruct, CPU)
+## Chunk-size sensitivity (400 vs 800 tokens) — heldout
 
-Metrics below are **documented PROXIES**, not human evaluation.
+| Retriever | Recall@1 (400) | Recall@5 (400) | MRR (400) | nDCG@5 (400) |
+| --- | --- | --- | --- | --- |
+| BM25 (sparse) | 0.417 | 0.917 | 0.646 | 0.715 |
+| Dense (MiniLM) | 0.250 | 0.333 | 0.292 | 0.303 |
+| Hybrid (RRF) | 0.333 | 0.500 | 0.367 | 0.398 |
+| Random control | 0.000 | 0.083 | 0.042 | 0.053 |
 
-- Questions generated: 8 (subset of 20) + 2 refusal probes
-- Citation validity: **1.000** (8/8 answers cite only retrieved, in-range excerpts)
-- Lexical groundedness F1 (answer vs cited excerpts): mean **0.035**, median 0.000
-- Refusal probes: 0/2 correct (OOS-01: ANSWERED; OOS-02: ANSWERED)
-- Total generation wall time: 45.5 s (mean 4.5 s / answer, greedy decoding)
+Gold chunks re-mapped to the 400-token granularity: 12/12 (exact evidence substring: 12; unmapped: 0).
 
-### Verbatim examples
+## Grounded generation (Qwen2.5-0.5B-Instruct, CPU) — SET B held-out only
 
-**GOOD — Q-08** — *What did bankers note about consumer loan portfolios in the Tenth District in the October 2025 report?*
+Metrics below are **documented PROXIES**, not human evaluation. Citation metrics measure EXISTENCE/range only — **not entailment**: no NLI/entailment model is run, so a cited passage is never verified to support the claim. Groundedness F1's recall denominator is ALL unique non-stopword tokens of the cited 800-token excerpts, so read F1 alongside answer_precision (same numerator, answer-token denominator).
 
-> [2] Some construction employment also faced headwinds in certain parts of the District. Most contacts indicated any impending layoffs will be modest and meant to right-size staffing levels with slightly softer demand conditions to maintain profitability.
+- Evaluation set: **heldout (SET B, data/qa/qa_set_eval.jsonl)** — ALL 12 in-scope questions (no subsetting) + 2 refusal probes
+- Citation existence: **1.000** (12/12 non-refusal answers cite >= 1 provided excerpt)
+- Fabricated citations (bracketed id outside the provided range, counted before filtering): **0/12** answers (rate 0.000)
+- Lexical groundedness F1 (answer vs cited excerpts): mean **0.020**, median 0.006
+- Answer precision (answer-token denominator): mean **0.425**, median 0.345
+- Model-layer false refusals on in-scope questions: 0/12
+- Retrieval-layer gate on held-out probes: 0/2 refused (B-OOS-01: ANSWERED; B-OOS-02: ANSWERED)
+- Total generation wall time: 101.0 s (mean 7.2 s / answer, greedy decoding)
 
-citations=[2], citation_valid=True, refusal=False, groundedness_f1=0.148
+### Verbatim examples (from the results table in metrics_generation.json)
 
+**GOOD — B-09** — *In the most recent Beige Book release included in this corpus, how many of the twelve Federal Reserve Districts described overall activity as expanding at a slight-to-modest pace, and which release is that?*
 
-**GOOD — Q-06** — *What did Boston District contacts report about commercial real estate activity in the October 2025 Beige Book?*
+> [3]
 
-> [2] Some contacts that initially absorbed tariff-related costs were beginning to pass them on to customers as pre-tariff inventories became depleted or as pressures to preserve margins grew more acute.
-
-citations=[2], citation_valid=True, refusal=False, groundedness_f1=0.131
-
-
-**FLAWED — Q-01** — *In the October 2025 Beige Book, how many Federal Reserve Districts reported slight to modest growth in overall economic activity?*
-
-> [2]
-
-citations=[2], citation_valid=True, refusal=False, groundedness_f1=0.000
+citations=[3], fabricated=[], citation_valid=True, refusal=False, groundedness_f1=0.006, answer_precision=1.000
 
 
-**FLAWED — Q-02** — *Why were auto sales boosted in some Districts ahead of the end of September, according to the October 2025 report?*
+**GOOD — B-10** — *What does the newest Beige Book report in the corpus say about whether the current pickup in activity breaks from the pattern of the preceding three report cycles?*
 
-> [2]
+> [3]
 
-citations=[2], citation_valid=True, refusal=False, groundedness_f1=0.000
+citations=[3], fabricated=[], citation_valid=True, refusal=False, groundedness_f1=0.006, answer_precision=1.000
+
+
+**FLAWED — B-02** — *One tourism business in the Fourth District described a steep annual drop in guests arriving from a neighboring country. How large was the decline it reported?*
+
+> [1]
+
+citations=[1], fabricated=[], citation_valid=True, refusal=False, groundedness_f1=0.000, answer_precision=0.000
+
+
+**FLAWED — B-03** — *Which disruption outside the housing market did First District contacts in January 2026 partly blame for weaker home purchases?*
+
+> [3]
+
+citations=[3], fabricated=[], citation_valid=True, refusal=False, groundedness_f1=0.000, answer_precision=0.000
 
 
 ## Honest scope
 
-This is an evaluation study of retrieval and grounded-generation components over 26 Beige Book documents. It is NOT a product, NOT financial advice, and the generation metrics are lexical/structural proxies — hallucination risk remains and no human evaluation panel was run (see README §14).
+This is an evaluation study of retrieval and grounded-generation components over 26 Beige Book documents. It is NOT a product, NOT financial advice, and the generation metrics are lexical/structural proxies — hallucination risk remains and no human evaluation panel was run (see README §14). Both QA sets are researcher-authored (single builder, no external annotators).

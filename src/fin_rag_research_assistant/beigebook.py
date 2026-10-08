@@ -14,6 +14,7 @@ and cached: nothing is fetched twice in one checkout.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 import urllib.error
@@ -127,3 +128,132 @@ def summary_fallback_note(cache_dir: Path) -> str:
     """Returns a short note about cached state; used by the fetch stage log."""
     sizes = load_cached_index(cache_dir)
     return json.dumps(sizes, indent=2, sort_keys=True)
+
+
+# --- corpus snapshot manifest (sha256 pin) ------------------------------------
+# The committed data/corpus_manifest.json pins the EXACT cached Beige Book HTML
+# snapshot used for all reported numbers. federalreserve.gov may revise a page
+# at any time; the hash check detects that, so a fresh clone that re-downloads
+# different bytes is loudly flagged instead of silently producing numbers that
+# are not comparable to the committed reports.
+
+
+def compute_sha256(path: Path) -> str:
+    """sha256 hex digest of a file's raw bytes (streamed, constant memory)."""
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def build_corpus_manifest(
+    raw_dir: Path | None = None,
+    provenance_path: Path | None = None,
+) -> dict:
+    """Build the snapshot manifest from cached HTML + provenance metadata.
+
+    Records url, release, fetched_at (from data/processed/provenance.json),
+    sha256 of the file bytes and size_bytes for every cached document.
+    """
+    raw_dir = Path(raw_dir) if raw_dir else config.RAW_DIR
+    provenance_path = (
+        Path(provenance_path) if provenance_path else config.PROCESSED_DIR / "provenance.json"
+    )
+    refs = {ref.doc_id: ref for ref in all_doc_refs()}
+    provenance: dict = {}
+    fetched_at = ""
+    if provenance_path.exists():
+        raw_prov = json.loads(provenance_path.read_text(encoding="utf-8"))
+        provenance = raw_prov.get("documents", {})
+        # fetch date is recorded once per build at the provenance top level
+        fetched_at = raw_prov.get("fetched_at", "")
+    documents: dict[str, dict] = {}
+    for path in sorted(raw_dir.glob("beigebook_*.html"), key=lambda p: p.stem):
+        key = path.stem.replace("beigebook_", "")
+        ref = refs.get(key)
+        meta = provenance.get(key, {})
+        documents[key] = {
+            "url": ref.url if ref else meta.get("url", ""),
+            "release": ref.release if ref else meta.get("release", key.split("-")[0]),
+            "fetched_at": fetched_at,
+            "sha256": compute_sha256(path),
+            "size_bytes": path.stat().st_size,
+        }
+    return {
+        "manifest_version": 1,
+        "algorithm": "sha256",
+        "corpus_source": "Federal Reserve Beige Book (public domain, U.S. government)",
+        "note": (
+            "Pins the exact cached Beige Book HTML snapshot used for every reported "
+            "number. If federalreserve.gov revises a page, re-downloading produces "
+            "different bytes and the hash check fails loudly: re-run `fetch`, then "
+            "re-run the full study and treat all numbers as a new snapshot."
+        ),
+        "n_documents": len(documents),
+        "documents": documents,
+    }
+
+
+def write_corpus_manifest(manifest: dict, path: Path | None = None) -> Path:
+    """Persist the manifest (strict JSON, no NaN) to data/corpus_manifest.json."""
+    path = Path(path) if path else config.CORPUS_MANIFEST_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def load_corpus_manifest(path: Path | None = None) -> dict:
+    """Load the committed manifest (raises FileNotFoundError if absent)."""
+    path = Path(path) if path else config.CORPUS_MANIFEST_PATH
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path} not found — the corpus snapshot pin is missing; run "
+            "`python scripts/run_study.py fetch --rebuild-manifest` or see README §15"
+        )
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def verify_corpus_manifest(
+    manifest_path: Path | None = None,
+    raw_dir: Path | None = None,
+) -> dict:
+    """Recompute sha256 + size for every manifest entry against the cache.
+
+    Returns a report dict: ``{"ok", "n_checked", "mismatches", "missing"}``
+    where mismatches carry expected/actual sha256 (and sizes). Never raises on
+    mismatch — the caller decides whether to warn or fail.
+    """
+    manifest = load_corpus_manifest(manifest_path)
+    raw_dir = Path(raw_dir) if raw_dir else config.RAW_DIR
+    mismatches: list[dict] = []
+    missing: list[str] = []
+    n_checked = 0
+    for doc_id, meta in sorted(manifest.get("documents", {}).items()):
+        path = raw_dir / f"beigebook_{doc_id}.html"
+        if not path.exists():
+            missing.append(doc_id)
+            continue
+        n_checked += 1
+        actual_sha = compute_sha256(path)
+        actual_size = path.stat().st_size
+        if actual_sha != meta.get("sha256") or actual_size != meta.get("size_bytes"):
+            mismatches.append(
+                {
+                    "doc_id": doc_id,
+                    "expected_sha256": meta.get("sha256"),
+                    "actual_sha256": actual_sha,
+                    "expected_size_bytes": meta.get("size_bytes"),
+                    "actual_size_bytes": actual_size,
+                }
+            )
+    return {
+        "ok": not mismatches and not missing,
+        "n_documents_in_manifest": len(manifest.get("documents", {})),
+        "n_checked": n_checked,
+        "mismatches": mismatches,
+        "missing": missing,
+    }

@@ -118,7 +118,7 @@ class _TextExtractor(HTMLParser):
 
 
 def extract_paragraphs(html_text: str) -> list[str]:
-    """Parse 10-K HTML into a list of cleaned paragraph strings."""
+    """Parse Beige Book HTML into a list of cleaned paragraph strings."""
     parser = _TextExtractor()
     parser.feed(html_text)
     parser.close()

@@ -24,15 +24,24 @@ def pick_refusal_threshold(
     out_of_scope_scores: list[float],
     margin: float = 0.02,
 ) -> float:
-    """Pick tau separating the two score distributions.
+    """Pick tau separating the two score distributions (the implemented rule).
 
-    tau = (max in-scope score among *low* cluster) ... in practice: the largest
-    in-scope score that is still below the smallest out-of-scope score is not
-    the failure direction that matters — refusals must trigger for LOW scores.
-    We therefore place tau just BELOW the minimum in-scope score (all in-scope
-    questions must pass) but ABOVE the maximum out-of-scope probe score (all
-    probes must be refused), when such a gap exists; otherwise fall back to a
-    conservative midpoint of the probe distribution.
+    Refusals must trigger for LOW dense scores, so tau must sit below the
+    in-scope scores. The rule, exactly as implemented:
+
+    - **Clean gap** (``min(in_scope) > max(out_of_scope)``): place tau inside
+      the gap, biased toward in-scope safety —
+      ``tau = min(in_min - margin, max(probe_max + 0.01, (in_min + probe_max) / 2))``.
+    - **Fallback** (distributions overlap, i.e. ``in_min <= probe_max``): there
+      is no threshold that both passes every in-scope question and refuses
+      every probe; tau is placed just below the in-scope minimum —
+      ``tau = in_min - margin`` — which keeps in-scope recall at 100% BY
+      CONSTRUCTION while probes above tau are still answered (documented
+      failure mode, not a solved separation).
+
+    This is NOT a percentile rule. (On the SET A dev distribution the two
+    groups overlap — probe max 0.583 > in-scope min 0.389 — so the fallback
+    applied: tau = 0.389 - 0.02 = 0.369.)
     """
     if not in_scope_scores or not out_of_scope_scores:
         raise ValueError("both score lists are required")

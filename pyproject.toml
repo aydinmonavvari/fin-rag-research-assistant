@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fin-rag-research-assistant"
-version = "1.1.0"
+version = "1.0.0"
 description = "Retrieval-augmented question answering over Federal Reserve Beige Book reports: BM25 vs dense vs hybrid retrieval evaluation, citation-grounded generation and an explicit refusal policy (educational research project)."
 readme = "README.md"
 requires-python = ">=3.11"

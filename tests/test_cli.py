@@ -19,6 +19,7 @@ def test_cli_help_smoke():
     assert result.returncode == 0
     for stage in ("fetch", "index", "eval-retrieval", "eval-generation", "report"):
         assert stage in result.stdout
+    assert "--fail-on-corpus-mismatch" in result.stdout
 
 
 def test_cli_rejects_unknown_stage():

@@ -1,10 +1,17 @@
-"""QA-set schema, loader and validation (offline, JSONL fixture)."""
+"""QA-set schema, loader and validation (offline, JSONL fixture + repo data)."""
 
 from __future__ import annotations
 
 import pytest
 
-from fin_rag_research_assistant.qa import load_qa_set, save_qa_set, validate_item
+from fin_rag_research_assistant import config
+from fin_rag_research_assistant.qa import (
+    load_qa_set,
+    load_qa_split,
+    save_qa_set,
+    split_questions_probes,
+    validate_item,
+)
 
 
 def _item(**overrides):
@@ -77,3 +84,75 @@ def test_load_qa_set_empty_raises(tmp_path):
     path.write_text("", encoding="utf-8")
     with pytest.raises(ValueError, match="empty QA set"):
         load_qa_set(path)
+
+
+def test_validate_item_accepts_set_b_qtypes():
+    for qtype in ("mixed", "temporal", "citation_trap"):
+        item = validate_item(_item(qid=f"B-{qtype}", qtype=qtype))
+        assert item.qtype == qtype
+
+
+def test_load_qa_split_unknown_name_raises():
+    with pytest.raises(ValueError, match="unknown QA split"):
+        load_qa_split("validation")
+
+
+def test_load_qa_split_resolves_split_specific_files(tmp_path):
+    dev_item = validate_item(_item(qid="Q-01"))
+    held_item = validate_item(_item(qid="B-01", qtype="temporal"))
+    save_qa_set([dev_item], tmp_path / "qa_set_dev.jsonl")
+    save_qa_set([held_item], tmp_path / "qa_set_eval.jsonl")
+    assert [i.qid for i in load_qa_split("dev", qa_dir=tmp_path)] == ["Q-01"]
+    assert [i.qid for i in load_qa_split("heldout", qa_dir=tmp_path)] == ["B-01"]
+
+
+def test_split_questions_probes_partitions_by_qtype():
+    items = [
+        validate_item(_item(qid="Q-01")),
+        validate_item(_item(qid="B-11", qtype="citation_trap")),
+        validate_item(_item(qid="B-OOS-01", source="", gold_chunk_id="", qtype="out_of_scope",
+                            question="What was X?")),
+    ]
+    questions, probes = split_questions_probes(items)
+    assert [q.qid for q in questions] == ["Q-01", "B-11"]
+    assert [p.qid for p in probes] == ["B-OOS-01"]
+
+
+def test_repo_qa_files_follow_two_set_scheme():
+    """Integration with the tracked study instruments (both authored by the
+    researcher): SET A dev = 20 + 2; SET B held-out = 12 + 2; no qid overlaps
+    between sets; every held-out in-scope item is fully specified."""
+    dev = load_qa_split("dev")
+    held = load_qa_split("heldout")
+    dev_questions, dev_probes = split_questions_probes(dev)
+    held_questions, held_probes = split_questions_probes(held)
+    assert (len(dev_questions), len(dev_probes)) == (20, 2)
+    assert (len(held_questions), len(held_probes)) == (12, 2)
+    dev_ids = {q.qid for q in dev}
+    held_ids = {q.qid for q in held}
+    assert not dev_ids & held_ids, "dev and held-out qids must not overlap"
+    for q in held_questions:
+        assert q.answer.strip() and q.gold_chunk_id and q.evidence.strip()
+    held_types = {q.qtype for q in held_questions}
+    assert held_types == {"numeric", "categorical", "definitional", "mixed",
+                          "temporal", "citation_trap"}
+
+
+def test_set_b_evidence_verifies_against_chunked_corpus():
+    """Every SET B (and SET A) evidence snippet must occur verbatim in its gold
+    chunk — the anti-fabrication guard for the researcher-authored sets.
+    Skipped when the parsed chunk cache is absent (fresh CI checkout)."""
+    from pathlib import Path
+
+    from fin_rag_research_assistant.chunk import load_chunks
+    from fin_rag_research_assistant.evaluation import verify_gold_evidence
+
+    chunks_path = config.PROCESSED_DIR / f"chunks_{config.CHUNK_SIZE_TOKENS}.jsonl"
+    if not Path(chunks_path).exists():
+        pytest.skip("chunk cache not built yet; run `run_study.py index`")
+    chunks = load_chunks(chunks_path)
+    for split in ("dev", "heldout"):
+        questions, _probes = split_questions_probes(load_qa_split(split))
+        check = verify_gold_evidence(chunks, questions)
+        assert check["missing_qids"] == [], f"{split}: unverifiable evidence"
+        assert check["n_verified"] == check["n_total"]

@@ -1,0 +1,191 @@
+{
+  "manifest_version": 1,
+  "algorithm": "sha256",
+  "corpus_source": "Federal Reserve Beige Book (public domain, U.S. government)",
+  "note": "Pins the exact cached Beige Book HTML snapshot used for every reported number. If federalreserve.gov revises a page, re-downloading produces different bytes and the hash check fails loudly: re-run `fetch`, then re-run the full study and treat all numbers as a new snapshot.",
+  "n_documents": 26,
+  "documents": {
+    "202510-atlanta": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-atlanta.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "962f091fb0673f1125552de775f2a1b43cbf68f9c682867ed066e64fa09807ae",
+      "size_bytes": 88353
+    },
+    "202510-boston": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-boston.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "65669a8d62940bae5e1004e27f2e641102c48e23043d689fdc4a55e31c8ef0ca",
+      "size_bytes": 88604
+    },
+    "202510-chicago": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-chicago.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "9f0f37b65a9f250f00bea0a1cf4169b6e15bbc9d072eb6610c021c74032428b8",
+      "size_bytes": 88189
+    },
+    "202510-cleveland": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-cleveland.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "7b4c9a97b74c25822f0ced3bea2fb2f82865115af267e44a74a9468283f78447",
+      "size_bytes": 88529
+    },
+    "202510-dallas": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-dallas.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "c359692a390077d686a350c03e56b56e8414642ff64d584a078d43b76b97a0c9",
+      "size_bytes": 88420
+    },
+    "202510-kansas-city": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-kansas-city.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "751dd9c4aefdd87369db8b12843e0db8c537327e1fdbc761c33bab122449b41f",
+      "size_bytes": 88653
+    },
+    "202510-minneapolis": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-minneapolis.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "34776bdd89888fdbdafc6543e58ac0ed6c734202593f1579796403474c06f537",
+      "size_bytes": 87955
+    },
+    "202510-new-york": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-new-york.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "cf3907808c5a8f85143cf16e9d5a93b2ab00c44b2fde2f70f82f33187c387ad2",
+      "size_bytes": 88866
+    },
+    "202510-philadelphia": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-philadelphia.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "466c8dbb5a25ad355d56ad9ebeaa7ee6c6d3d17b66c5f8ebcb73dd6c0587bc88",
+      "size_bytes": 89015
+    },
+    "202510-richmond": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-richmond.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "ce4a8f278a6aac3ebc571ec1f82bd6ce500b247cd63a4a7cf50aa4014be9a555",
+      "size_bytes": 88162
+    },
+    "202510-san-francisco": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-san-francisco.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "fd181a7472fc728b8d4ea9ba7d7dcac06ed3ee12e32ce86cb9b9bcd4b47f588e",
+      "size_bytes": 89014
+    },
+    "202510-st-louis": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-st-louis.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "83c00084776e9a59823e2fb9d01b3d71a8261ed33361046c5476340f47483dfc",
+      "size_bytes": 88317
+    },
+    "202510-summary": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202510-summary.htm",
+      "release": "202510",
+      "fetched_at": "2026-10-08",
+      "sha256": "be038aa9194064dee721dec0a99793e751fb3ac01c27b9b4149a915a27cba73f",
+      "size_bytes": 89461
+    },
+    "202601-atlanta": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-atlanta.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "708fe06051967ea017690a2405f0ba2926475eaf667042b9c42d721c1ece5d59",
+      "size_bytes": 88054
+    },
+    "202601-boston": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-boston.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "e4c34c7a46379075bcb8bfac26b010763684b22941113eca870b84b6c97add7f",
+      "size_bytes": 88327
+    },
+    "202601-chicago": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-chicago.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "2b8614db719cd6e97376b78e476d728aa82b2fefcd27b841b3a2d4cddeaa87ea",
+      "size_bytes": 88057
+    },
+    "202601-cleveland": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-cleveland.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "7259621f91ba20c88a48d9dd80d3dba99a2d5255b721f4d863678af2bf7b4117",
+      "size_bytes": 88871
+    },
+    "202601-dallas": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-dallas.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "bc2dd965c1a892e66359a396a13df67954590ab60c03021603fbdcd14f8805d1",
+      "size_bytes": 88830
+    },
+    "202601-kansas-city": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-kansas-city.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "afab8ac45853844fef741d3135dee04c5587a6cda04809bf64e2307b2bd93e75",
+      "size_bytes": 88704
+    },
+    "202601-minneapolis": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-minneapolis.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "0ece3cd494870889a661e750b7f4c475142362dde2ae7d870a8d10e21b08ce7f",
+      "size_bytes": 88102
+    },
+    "202601-new-york": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-new-york.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "270e1cc04ef1d586355cc6e8e41293ebfb9ccfdb7cce5621f4675eedd7d1b03f",
+      "size_bytes": 88595
+    },
+    "202601-philadelphia": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-philadelphia.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "d1dd1ccde7780f5c41e202e2b05889e18a5f4597ed311c223e7ad8e34380b8bb",
+      "size_bytes": 88846
+    },
+    "202601-richmond": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-richmond.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "be8a88bdd0286f1b76d42d92a3e9796f94d63ba543195b7962c0345cf6dce826",
+      "size_bytes": 87813
+    },
+    "202601-san-francisco": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-san-francisco.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "700597e040878fd360ddecc14e035cf09db9386f1678875d492a5e49d25c7be4",
+      "size_bytes": 89293
+    },
+    "202601-st-louis": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-st-louis.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "861fd2e1362a8b42d117174b62d0b1e9f5bbb626fc7ba4a19bef8f407de08359",
+      "size_bytes": 87361
+    },
+    "202601-summary": {
+      "url": "https://www.federalreserve.gov/monetarypolicy/beigebook202601-summary.htm",
+      "release": "202601",
+      "fetched_at": "2026-10-08",
+      "sha256": "ccdf48ee40896908ec8e2560ee42577aa9116264531c690c3ca592f772b2c416",
+      "size_bytes": 88925
+    }
+  }
+}

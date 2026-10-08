@@ -1,10 +1,23 @@
-"""QA-set schema, loader and validation.
+"""QA-set schema, loader and validation (two-file dev / held-out scheme).
 
-The 20-question QA set was authored during corpus preparation by the
-researcher: questions were written AFTER reading the parsed Beige Book corpus,
-each with the id of the chunk that verifiably contains the answer plus a
-verbatim evidence snippet. This is documented as a limitation: the set is a
-study instrument, not a public benchmark.
+Both QA sets are authored by the researcher (single builder — there are no
+external annotators):
+
+- SET A (``data/qa/qa_set_dev.jsonl``): the original 20 in-scope questions +
+  2 out-of-scope probes, written after reading the parsed Beige Book corpus.
+  Used ONLY for refusal-threshold (tau) selection and debugging — no metric
+  computed on SET A is a final evaluation.
+- SET B (``data/qa/qa_set_eval.jsonl``): 12 in-scope questions (2 numeric,
+  2 categorical, 2 definitional, 2 mixed, 2 temporal, 2 citation-grounding
+  traps) + 2 out-of-scope probes, authored AFTER SET A was frozen, with
+  paraphrased question wording to reduce overlap with the corpus and with
+  SET A. Used for the final (held-out) retrieval, refusal and generation
+  evaluation; it is never used for threshold selection.
+
+Each in-scope item records the id of the chunk that verifiably contains the
+answer plus a verbatim evidence snippet (machine-verified by the pipeline).
+This is documented as a limitation: the sets are study instruments, not public
+benchmarks.
 """
 
 from __future__ import annotations
@@ -24,7 +37,17 @@ REQUIRED_FIELDS = {
     "evidence",
     "qtype",
 }
-VALID_QTYPES = {"numeric", "categorical", "definitional", "out_of_scope"}
+VALID_QTYPES = {
+    "numeric",
+    "categorical",
+    "definitional",
+    "mixed",
+    "temporal",
+    "citation_trap",
+    "out_of_scope",
+}
+# qtypes whose items are in-scope (answerable, with a gold chunk + evidence):
+IN_SCOPE_QTYPES = VALID_QTYPES - {"out_of_scope"}
 VALID_SOURCES = {
     f"{release}-{slug}"
     for release in config.TARGET_RELEASES
@@ -99,6 +122,30 @@ def load_qa_set(path: Path) -> list[QAItem]:
     if not items:
         raise ValueError(f"{path}: empty QA set")
     return items
+
+
+SPLIT_PATHS = {"dev": config.QA_DEV_PATH, "heldout": config.QA_EVAL_PATH}
+
+
+def load_qa_split(split: str, qa_dir: Path | None = None) -> list[QAItem]:
+    """Load one named QA split: ``dev`` (SET A) or ``heldout`` (SET B).
+
+    ``qa_dir`` overrides the directory (used by tests with tmp fixtures); the
+    file names stay split-specific.
+    """
+    path = SPLIT_PATHS.get(split)
+    if path is None:
+        raise ValueError(f"unknown QA split '{split}' (expected one of {sorted(SPLIT_PATHS)})")
+    if qa_dir is not None:
+        path = Path(qa_dir) / path.name
+    return load_qa_set(path)
+
+
+def split_questions_probes(items: list[QAItem]) -> tuple[list[QAItem], list[QAItem]]:
+    """Partition a QA split into (in-scope questions, out-of-scope probes)."""
+    questions = [q for q in items if q.qtype in IN_SCOPE_QTYPES]
+    probes = [q for q in items if q.qtype == "out_of_scope"]
+    return questions, probes
 
 
 def save_qa_set(items: list[QAItem], path: Path) -> None:

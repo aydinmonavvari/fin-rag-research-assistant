@@ -2,8 +2,14 @@
 
 The prompt forces answers to cite excerpt numbers and defines the refusal
 string ``INSUFFICIENT_CONTEXT``. Generation metrics here are explicitly
-PROXIES (citation validity, lexical groundedness, refusal behaviour) — they are
-not a substitute for human evaluation, and hallucination risk remains.
+PROXIES (citation existence, lexical groundedness, refusal behaviour) — they
+are not a substitute for human evaluation, and hallucination risk remains.
+
+Citation metrics measure EXISTENCE and RANGE only: "citation_existence_rate"
+checks that a non-refusal answer cites at least one excerpt that was actually
+provided to the model, and "fabricated_citation_rate" counts answers that emit
+a bracketed id outside the provided range. NEITHER verifies that the cited
+passage supports the claim — no entailment/NLI model is run.
 """
 
 from __future__ import annotations
@@ -47,18 +53,58 @@ def build_prompt(question: str, excerpts: list[str]) -> list[dict, ...]:
     ]
 
 
+def find_citations(answer: str, n_excerpts: int) -> tuple[list[int], list[int]]:
+    """Scan bracketed citation ids BEFORE any filtering.
+
+    Returns ``(valid_ids, fabricated_ids)`` where
+
+    - ``valid_ids`` is the deduplicated, order-of-appearance list of ids that
+      point at excerpts that actually exist (1..n_excerpts), and
+    - ``fabricated_ids`` is the deduplicated, order-of-appearance list of ids
+      outside that range (the model cited an excerpt it was never given).
+
+    Only ``valid_ids`` may be used as evidence downstream; ``fabricated_ids``
+    are recorded so the fabricated-citation rate can be reported.
+    """
+    valid: list[int] = []
+    fabricated: list[int] = []
+    for match in EXCERPT_PATTERN.finditer(answer):
+        number = int(match.group(1))
+        if 1 <= number <= n_excerpts:
+            if number not in valid:
+                valid.append(number)
+        elif number not in fabricated:
+            fabricated.append(number)
+    return valid, fabricated
+
+
 def parse_citations(answer: str, n_excerpts: int) -> list[int]:
     """Extract cited excerpt numbers; invalid ones are dropped.
 
-    Returns the deduplicated list of citations that point at excerpt ids that
-    actually exist (1..n_excerpts), in order of first appearance.
+    Backward-compatible thin wrapper over :func:`find_citations`: returns only
+    the deduplicated list of citations that point at excerpt ids that actually
+    exist (1..n_excerpts), in order of first appearance.
     """
-    cited: list[int] = []
-    for match in EXCERPT_PATTERN.finditer(answer):
-        number = int(match.group(1))
-        if 1 <= number <= n_excerpts and number not in cited:
-            cited.append(number)
-    return cited
+    return find_citations(answer, n_excerpts)[0]
+
+
+def answer_precision(answer: str, excerpts: list[str], cited: list[int]) -> float:
+    """Fraction of the answer's non-stopword tokens that appear in the cited
+    excerpts (precision side of the groundedness F1).
+
+    PROXY metric: the denominator is ONLY the answer's unique non-stopword
+    tokens, so — unlike the F1 below — it does not shrink merely because the
+    cited 800-token excerpts contain many other words. It is reported as a
+    separate, more denominator-robust companion to the F1.
+    """
+    if not cited:
+        return 0.0
+    answer_tokens = _answer_tokens(answer)
+    evidence_tokens = _evidence_tokens(excerpts, cited)
+    if not answer_tokens or not evidence_tokens:
+        return 0.0
+    overlap = len(answer_tokens & evidence_tokens)
+    return overlap / len(answer_tokens)
 
 
 def lexical_groundedness(answer: str, excerpts: list[str], cited: list[int]) -> float:
@@ -66,23 +112,17 @@ def lexical_groundedness(answer: str, excerpts: list[str], cited: list[int]) -> 
 
     PROXY metric: a high value means the answer shares vocabulary with the
     cited evidence; it does NOT certify factual correctness.
+
+    Documented denominator limitation: the recall denominator is the set of ALL
+    unique non-stopword tokens of the cited excerpts, which here are full
+    800-token chunks — so recall is structurally tiny and the F1 should always
+    be read alongside :func:`answer_precision` (same numerator, answer-only
+    denominator).
     """
     if not cited:
         return 0.0
-    stop = {
-        "the", "a", "an", "and", "or", "of", "to", "in", "for", "is", "are",
-        "was", "were", "on", "as", "with", "that", "this", "it", "by", "at",
-        "from", "be", "its", "our", "their", "we", "you", "not", "but", "also",
-    }
-    answer_tokens = {
-        tok.lower() for tok in re.findall(r"[A-Za-z0-9]+", answer)
-    } - stop
-    evidence_tokens: set[str] = set()
-    for idx in cited:
-        evidence_tokens |= {
-            tok.lower() for tok in re.findall(r"[A-Za-z0-9]+", excerpts[idx - 1])
-        }
-    evidence_tokens -= stop
+    answer_tokens = _answer_tokens(answer)
+    evidence_tokens = _evidence_tokens(excerpts, cited)
     if not answer_tokens or not evidence_tokens:
         return 0.0
     overlap = len(answer_tokens & evidence_tokens)
@@ -93,6 +133,28 @@ def lexical_groundedness(answer: str, excerpts: list[str], cited: list[int]) -> 
     return 2 * precision * recall / (precision + recall)
 
 
+def _answer_tokens(answer: str) -> set[str]:
+    stop = _STOPWORDS
+    return {tok.lower() for tok in re.findall(r"[A-Za-z0-9]+", answer)} - stop
+
+
+def _evidence_tokens(excerpts: list[str], cited: list[int]) -> set[str]:
+    stop = _STOPWORDS
+    evidence_tokens: set[str] = set()
+    for idx in cited:
+        evidence_tokens |= {
+            tok.lower() for tok in re.findall(r"[A-Za-z0-9]+", excerpts[idx - 1])
+        }
+    return evidence_tokens - stop
+
+
+_STOPWORDS = {
+    "the", "a", "an", "and", "or", "of", "to", "in", "for", "is", "are",
+    "was", "were", "on", "as", "with", "that", "this", "it", "by", "at",
+    "from", "be", "its", "our", "their", "we", "you", "not", "but", "also",
+}
+
+
 @dataclass
 class GenerationResult:
     qid: str
@@ -100,10 +162,13 @@ class GenerationResult:
     prompt_excerpts: list[str]
     retrieved_chunk_ids: list[str]  # provenance: excerpt i -> retrieved chunk id
     raw_answer: str
-    citations: list[int]
-    citation_valid: bool  # citations exist (point at retrieved excerpts, in range)
+    citations: list[int]  # in-range ids (the only ones used as evidence)
+    fabricated_citations: list[int]  # emitted ids outside the provided range
+    citation_existence: bool  # non-refusal answer cites >= 1 provided excerpt
+    citation_valid: bool  # existence AND no fabricated ids (refusals are valid)
     used_refusal: bool
     groundedness_f1: float
+    answer_precision: float
     latency_s: float
     n_prompt_chars: int
 
@@ -150,20 +215,23 @@ def evaluate_generation_result(
 ) -> GenerationResult:
     """Score one raw answer with the proxy metrics.
 
-    Citation validity: a non-refusal answer must cite at least one excerpt and
-    every cited id must point at an excerpt that exists AND was actually
-    retrieved (the excerpts passed to the prompt ARE the retrieved top-k, so
-    "in range" is the operational check; out-of-range ids are fabricated
-    citations).
+    Citation metrics are EXISTENCE/RANGE checks, NOT entailment: no model
+    verifies that the cited passage supports the claim.
+
+    - ``citation_existence``: a non-refusal answer must cite at least one
+      excerpt that was actually provided (the excerpts passed to the prompt ARE
+      the retrieved top-k, so "in range" is the operational check).
+    - ``fabricated_citations``: bracketed ids emitted by the model that point
+      OUTSIDE the provided range (counted before filtering; they are never used
+      as evidence). Any fabricated id makes ``citation_valid`` False.
+    - A refusal makes no factual claim, so it needs no citation.
     """
-    citations = parse_citations(raw_answer, len(excerpts))
+    citations, fabricated = find_citations(raw_answer, len(excerpts))
     used_refusal = is_refusal(raw_answer)
-    valid = True
-    if not used_refusal and not citations:
-        valid = False  # asserted a fact with zero citations
-    if any(cid < 1 or cid > len(excerpts) for cid in citations):
-        valid = False  # fabricated citation id (outside the retrieved range)
+    existence = used_refusal or bool(citations)
+    valid = existence and not fabricated
     grounded = lexical_groundedness(raw_answer, excerpts, citations)
+    precision = answer_precision(raw_answer, excerpts, citations)
     return GenerationResult(
         qid=qid,
         question=question,
@@ -171,9 +239,12 @@ def evaluate_generation_result(
         retrieved_chunk_ids=list(retrieved_ids),
         raw_answer=raw_answer,
         citations=citations,
+        fabricated_citations=fabricated,
+        citation_existence=existence,
         citation_valid=valid,
         used_refusal=used_refusal,
         groundedness_f1=grounded,
+        answer_precision=precision,
         latency_s=latency_s,
         n_prompt_chars=sum(len(e) for e in excerpts),
     )

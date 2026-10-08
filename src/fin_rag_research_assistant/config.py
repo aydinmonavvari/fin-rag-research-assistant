@@ -13,6 +13,19 @@ QA_DIR = DATA_DIR / "qa"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = PROJECT_ROOT / "figures"
 
+# Two-file QA scheme (SET A / SET B). data/qa/qa_set.jsonl (one combined file,
+# used for BOTH tau selection and final evaluation) was replaced by:
+#   - SET A "dev":  threshold selection + debugging only (never a final result);
+#   - SET B "held-out": final evaluation; never used for threshold selection.
+# Both files are authored by the researcher (single builder, no external
+# annotators) — disclosed in README / research report / generated reports.
+QA_DEV_PATH = QA_DIR / "qa_set_dev.jsonl"
+QA_EVAL_PATH = QA_DIR / "qa_set_eval.jsonl"
+
+# Committed snapshot pin for the cached raw Beige Book HTML (sha256 per file).
+# Built from the cache + provenance; verified automatically by run_study.py.
+CORPUS_MANIFEST_PATH = DATA_DIR / "corpus_manifest.json"
+
 # --- Federal Reserve Beige Book access policy --------------------------------
 # Documented corpus pivot: the study was originally designed around SEC 10-K
 # filings, but SEC's edge servers return HTTP 403 to this build environment's
@@ -63,17 +76,19 @@ RRF_K = 60  # reciprocal rank fusion constant (Cormack et al. 2009)
 METRIC_KS = (1, 5)  # Recall@1, Recall@5
 
 # --- Refusal policy ----------------------------------------------------------
-# Refuse when the best available dense cosine score falls below tau. The value
-# is picked from the score distribution of the in-scope questions vs the
-# out-of-scope probes (see scripts stage `eval-retrieval`); the default is only
-# a fallback if the analysis has not been run.
+# Refuse when the best available dense cosine score falls below tau. tau is
+# selected ONCE on the SET A (dev) score distribution — see policy.py for the
+# exact implemented rule — and then applied unchanged to the held-out SET B
+# evaluation. REFUSAL_TAU_DEFAULT is only a fallback for when the analysis has
+# not been run.
 REFUSAL_TAU_DEFAULT = 0.30
 
 # --- Grounded generation -----------------------------------------------------
+# Generation is evaluated on ALL held-out (SET B) in-scope questions plus the
+# SET B refusal probes — there is no question subsetting (the earlier
+# first-8-questions subset was removed as an undisclosed selection bias).
 GEN_MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
 GEN_MAX_NEW_TOKENS = 160
-GEN_N_QUESTIONS = 8  # subset of the 20-question set
-GEN_N_REFUSAL_PROBES = 2
 GEN_INSTRUCTION = (
     "Answer using ONLY the provided excerpts; cite excerpt numbers; "
     "if the excerpts do not contain the answer, reply exactly INSUFFICIENT_CONTEXT"
@@ -94,6 +109,3 @@ DOC_LABELS = {
 RETRIEVAL_EVAL_DEPTH = 10  # ranked-list depth kept per question (Recall@k curves)
 RECALL_CURVE_KS = tuple(range(1, RETRIEVAL_EVAL_DEPTH + 1))
 GEN_TOP_K = 3  # excerpts provided to the generator
-GEN_SUBSET_SIZE = 8  # in-scope questions sent through the generator
-GEN_SUBSET_QIDS: tuple[str, ...] = ()  # explicit subset, fixed after QA authoring
-GEN_N_OFF_DOMAIN_PROBES = 6  # auxiliary probes for the tau-selection figure

@@ -1,8 +1,16 @@
-"""Author the 20-question QA set + 2 out-of-scope probes from the parsed corpus.
+"""Author the two QA study instruments (SET A dev + SET B held-out).
 
-Questions were written AFTER reading the parsed Beige Book corpus (202510 and
-202601 releases). Each in-scope question carries a verbatim evidence snippet;
-the script locates the gold chunk containing it and writes data/qa/qa_set.jsonl.
+Both sets are authored by the researcher (single builder); there are no
+external annotators. SET A (``data/qa/qa_set_dev.jsonl``) contains the original
+20 in-scope questions + 2 out-of-scope probes written after reading the parsed
+Beige Book corpus; it is used for refusal-threshold (tau) selection and
+debugging only. SET B (``data/qa/qa_set_eval.jsonl``) was authored AFTER SET A
+was frozen, using paraphrased wording (questions do not copy corpus sentences),
+and is the held-out evaluation set; it is never used for threshold selection.
+
+Each in-scope question carries a verbatim evidence snippet; the script locates
+the gold chunk containing it (first containing chunk in document order, since
+overlapping windows can duplicate a sentence) and writes the JSONL files.
 """
 
 from __future__ import annotations
@@ -17,7 +25,7 @@ from fin_rag_research_assistant import config  # noqa: E402
 from fin_rag_research_assistant.chunk import load_chunks  # noqa: E402
 
 # (qid, source_doc_id, question, answer, evidence_verbatim, qtype)
-QUESTIONS = [
+QUESTIONS_DEV = [
     # --- October 2025 release (202510) ---
     ("Q-01", "202510-summary",
      "In the October 2025 Beige Book, how many Federal Reserve Districts reported slight to modest growth in overall economic activity?",
@@ -133,12 +141,91 @@ QUESTIONS = [
      "out_of_scope"),
 ]
 
+# SET B (held-out): authored after SET A was frozen. Questions are paraphrased
+# (they do not copy corpus sentences, unlike several SET A questions, which was
+# a documented weakness). qtypes: numeric, categorical, definitional, mixed,
+# temporal (answer depends on release recency), citation_trap (the plausible
+# naive answer exists in the corpus but with a subtly different number/scope;
+# the gold answer states the correct nuance), out_of_scope probes.
+QUESTIONS_HELDOUT = [
+    ("B-01", "202601-dallas",
+     "What average pay increase did Texas firms surveyed for the January 2026 Dallas Fed report say their workforces received during 2025?",
+     "3.5 percent on average, down from 4.3 percent in 2024",
+     "Wage growth in 2025 among more than 250 surveyed Texas manufacturing and services firms was 3.5 percent, on average, down from 4.3 percent in 2024",
+     "numeric"),
+    ("B-02", "202510-cleveland",
+     "One tourism business in the Fourth District described a steep annual drop in guests arriving from a neighboring country. How large was the decline it reported?",
+     "Visits by Canadians fell by 50 percent (a full half, year over year)",
+     "One tourism contact, who reported a year-over-year decline in activity, said that visits by Canadians fell by 50 percent",
+     "numeric"),
+    ("B-03", "202601-boston",
+     "Which disruption outside the housing market did First District contacts in January 2026 partly blame for weaker home purchases?",
+     "The federal government shutdown, which led to mortgage delays",
+     "Residential home sales showed moderate declines from a year earlier, in part because the federal government shutdown led to mortgage delays",
+     "categorical"),
+    ("B-04", "202601-minneapolis",
+     "How did heavier-than-usual snow affect Ninth District retail and tourism activity around the holidays, according to the January 2026 Minneapolis report?",
+     "Spotty holiday sales were typically blamed on poor weather, but the snow and colder temperatures gave winter tourism a solid start in some regions",
+     "Spotty sales during the holiday season were typically attributed to poor weather, with much of the District seeing snowier conditions than normal. However, snow and colder temperatures also translated to a solid start for winter tourism activities in some regions",
+     "categorical"),
+    ("B-05", "202510-richmond",
+     "What cause did a North Carolina housing agent quoted in the Richmond District's October 2025 report give for the large share of home listings that had their asking prices cut?",
+     "Initial overpricing \u2014 the agent reported that 45 percent of listings experienced price reductions because they had been priced too high at the outset",
+     "45 percent of listings experienced price reductions due to initial overpricing",
+     "definitional"),
+    ("B-06", "202510-philadelphia",
+     "What did an October 2025 Third District contact report had happened to the premium on a liability insurance policy over the previous year?",
+     "It rose 15 percent from a year earlier (alongside a nearly 10 percent rise in health-care costs)",
+     "Another contact reported a 15 percent increase in a liability insurance policy from a year earlier in addition to a nearly 10 percent rise in health-care costs",
+     "definitional"),
+    ("B-07", "202510-cleveland",
+     "In the October 2025 Cleveland report, how far below prior expectations were orders received by suppliers to industrial and agricultural equipment makers, and which buyers were placing higher orders instead?",
+     "Orders were roughly 25 percent below previous expectations; firms selling into the fossil fuel industry and electricity generation reported higher orders related to data center construction and operation",
+     "orders from these producers were below their previous expectation by roughly 25 percent. By contrast, some firms selling into the fossil fuel industry and electricity generation reported higher orders related to data center construction and operation",
+     "mixed"),
+    ("B-08", "202601-philadelphia",
+     "By January 2026, where did Third District firms' expectations for next year's growth in pay per worker stand relative to pre-2020 norms?",
+     "At a trimmed mean of 3.3 percent for the fourth quarter of 2025 \u2014 slightly above the 3.2 percent pre-pandemic (2016 through 2019) average",
+     "firms' expectations of the one-year-ahead change in compensation cost per worker held steady at a trimmed mean of 3.3 percent in the fourth quarter of 2025\u2014just a tick higher than the 3.2 percent pre-pandemic average (2016 through 2019)",
+     "mixed"),
+    ("B-09", "202601-summary",
+     "In the most recent Beige Book release included in this corpus, how many of the twelve Federal Reserve Districts described overall activity as expanding at a slight-to-modest pace, and which release is that?",
+     "Eight of the twelve Districts \u2014 the January 2026 release (the October 2025 release counted only three)",
+     "Overall economic activity increased at a slight to modest pace in eight of the twelve Federal Reserve Districts, with three Districts reporting no change and one reporting a modest decline",
+     "temporal"),
+    ("B-10", "202601-summary",
+     "What does the newest Beige Book report in the corpus say about whether the current pickup in activity breaks from the pattern of the preceding three report cycles?",
+     "It does break the pattern: the report calls the increase an improvement over the last three report cycles, in which a majority of Districts reported little change",
+     "This marks an improvement over the last three report cycles where a majority of Districts reported little change",
+     "temporal"),
+    ("B-11", "202601-minneapolis",
+     "In the monthly business survey cited in the January 2026 Minneapolis report, what portion of firms said they had raised the prices they charge customers during December?",
+     "20 percent raised prices charged to customers in December, while 16 percent lowered them. The 'about a third' figure in the same paragraph refers to firms whose nonlabor INPUT prices rose, and 'more than a third' refers to firms PLANNING increases for January \u2014 neither is the share that raised charged prices in December",
+     "Meanwhile, 20 percent of firms increased prices charged to customers, compared with 16 percent that decreased their prices. More than a third of firms anticipated increasing their prices charged to customers in January",
+     "citation_trap"),
+    ("B-12", "202510-kansas-city",
+     "How widespread was reported stress on farm earnings and operating cash across the Tenth District's agricultural lenders in October 2025 \u2014 was it the same everywhere in the district?",
+     "No single district-wide share is reported: over 80 percent of lenders in crop-heavy areas reported declines in farm income and working capital, compared with about 40 percent in areas with more cattle production \u2014 the share depends on the area's farm mix",
+     "In a recent survey, over 80 percent of lenders in crop-heavy areas reported declines in farm income and working capital, compared to about 40 percent in areas with more cattle production",
+     "citation_trap"),
+    ("B-OOS-01", "",
+     "What was the national unemployment rate for December 2025 according to the Bureau of Labor Statistics?",
+     "",
+     "",
+     "out_of_scope"),
+    ("B-OOS-02", "",
+     "By how many basis points did the FOMC lower its federal funds target range at the December 2025 meeting?",
+     "",
+     "",
+     "out_of_scope"),
+]
 
-def main() -> int:
-    chunks = load_chunks(config.PROCESSED_DIR / f"chunks_{config.CHUNK_SIZE_TOKENS}.jsonl")
+
+def build_rows(chunks, questions) -> tuple[list[dict], list[str]]:
+    """Resolve gold chunk ids; returns (rows, problems)."""
     rows: list[dict] = []
     problems: list[str] = []
-    for qid, source, question, answer, evidence, qtype in QUESTIONS:
+    for qid, source, question, answer, evidence, qtype in questions:
         if qtype == "out_of_scope":
             rows.append({
                 "qid": qid, "source": "", "question": question, "answer": "",
@@ -157,22 +244,38 @@ def main() -> int:
             "qid": qid, "source": source, "question": question, "answer": answer,
             "gold_chunk_id": matches[0].chunk_id, "evidence": evidence, "qtype": qtype,
         })
-    if problems:
-        print("PROBLEMS:")
-        for p in problems:
-            print(" -", p)
-        return 1
-    out = config.QA_DIR / "qa_set.jsonl"
+    return rows, problems
+
+
+def write_set(rows: list[dict], out: Path) -> dict[str, int]:
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8") as fh:
         for row in rows:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-    n_in = sum(1 for r in rows if r["qtype"] != "out_of_scope")
     per_type: dict[str, int] = {}
-    for r in rows:
-        per_type[r["qtype"]] = per_type.get(r["qtype"], 0) + 1
-    print(f"wrote {len(rows)} rows to {out} (in-scope: {n_in}) types={per_type}")
-    return 0
+    for row in rows:
+        per_type[row["qtype"]] = per_type.get(row["qtype"], 0) + 1
+    return per_type
+
+
+def main() -> int:
+    chunks = load_chunks(config.PROCESSED_DIR / f"chunks_{config.CHUNK_SIZE_TOKENS}.jsonl")
+    status = 0
+    for name, questions, out in (
+        ("SET A (dev)", QUESTIONS_DEV, config.QA_DEV_PATH),
+        ("SET B (held-out)", QUESTIONS_HELDOUT, config.QA_EVAL_PATH),
+    ):
+        rows, problems = build_rows(chunks, questions)
+        if problems:
+            print(f"{name} PROBLEMS:")
+            for problem in problems:
+                print(" -", problem)
+            status = 1
+            continue
+        per_type = write_set(rows, out)
+        n_in = sum(1 for r in rows if r["qtype"] != "out_of_scope")
+        print(f"{name}: wrote {len(rows)} rows to {out} (in-scope: {n_in}) types={per_type}")
+    return status
 
 
 if __name__ == "__main__":

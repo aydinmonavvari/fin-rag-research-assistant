@@ -1,7 +1,9 @@
-"""Retrieval evaluation: run every retriever over the QA set, compute metrics.
+"""Retrieval evaluation: run every retriever over each QA split, compute metrics.
 
-Also assembles the score-distribution data that drives the refusal-threshold
-analysis and the chunk-size sensitivity comparison.
+Split design (anti-circularity): SET A "dev" is used for refusal-threshold
+(tau) SELECTION only; SET B "heldout" receives the final evaluation with the
+tau chosen on dev. Also assembles the score-distribution data that drives the
+refusal-threshold analysis and the chunk-size sensitivity comparison.
 """
 
 from __future__ import annotations
@@ -90,7 +92,12 @@ def refusal_analysis(
     questions: list[QAItem],
     probe_scores: dict[str, float],
 ) -> dict:
-    """Pick tau from the score distribution and report the partition."""
+    """Pick tau from the DEV score distribution and report the partition.
+
+    ONLY to be called with the SET A (dev) dense run + SET A probes: this is
+    the threshold-SELECTION step. Applying the chosen tau to another split is
+    done by :func:`refusal_eval_report`, which never re-picks tau.
+    """
     in_scope = [
         top_dense_scores(dense_run)[item.qid] for item in questions
         if item.qid in dense_run.score_lists
@@ -101,6 +108,48 @@ def refusal_analysis(
         return {"tau": None, "note": "no out-of-scope probes scored yet"}
     tau = pick_refusal_threshold(in_scope, probes)
     report = refusal_threshold_report(in_scope, probes, tau)
+    report["in_scope_scores"] = [round(float(s), 4) for s in in_scope]
+    report["probe_scores"] = [round(float(s), 4) for s in probes]
+    return report
+
+
+def select_refusal_threshold(
+    dense_run: RetrievalRun,
+    dev_questions: list[QAItem],
+    dev_probe_scores: dict[str, float],
+) -> dict:
+    """Explicit dev-only wrapper around :func:`refusal_analysis`.
+
+    Kept as a named seam so the pipeline (and tests) can assert that tau is
+    selected from SET A only.
+    """
+    report = refusal_analysis(dense_run, dev_questions, dev_probe_scores)
+    report["selection_set"] = "dev (SET A)"
+    return report
+
+
+def refusal_eval_report(
+    dense_run: RetrievalRun,
+    questions: list[QAItem],
+    probe_scores: dict[str, float],
+    tau: float,
+    split: str,
+) -> dict:
+    """Apply an ALREADY-SELECTED tau to one split's dense score distribution.
+
+    Never calls :func:`pick_refusal_threshold` — the tau comes from the dev
+    selection and is applied unchanged (held-out evaluation semantics).
+    Returns the same partition report as ``refusal_threshold_report`` plus the
+    split label and the (rounded) scores behind it.
+    """
+    in_scope = [
+        top_dense_scores(dense_run)[item.qid] for item in questions
+        if item.qid in dense_run.score_lists
+    ]
+    in_scope = [s for s in in_scope if not np.isnan(s)]
+    probes = [s for s in probe_scores.values() if not np.isnan(s)]
+    report = refusal_threshold_report(in_scope, probes, tau)
+    report["split"] = split
     report["in_scope_scores"] = [round(float(s), 4) for s in in_scope]
     report["probe_scores"] = [round(float(s), 4) for s in probes]
     return report

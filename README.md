@@ -14,7 +14,7 @@ Part of the [Aydin Monavvari research portfolio](https://github.com/aydinmonavva
 
 ## 1 · Short description
 
-`fin-rag-research-assistant` builds a text corpus from **26 real Federal Reserve Beige Book documents** (two releases — October 2025 and January 2026 — each with a national summary plus twelve district reports, all public domain), chunks it with provenance, and evaluates three retrievers (BM25, dense MiniLM embeddings, hybrid reciprocal-rank fusion) plus a random control against a 20-question QA set with machine-verified gold chunks. A small instruct model (Qwen 2.5 0.5B) then answers a subset from the top-3 retrieved excerpts under an explicit "cite excerpts or refuse" instruction, and the study measures citation validity, lexical groundedness, and refusal behavior. The full pipeline (`fetch → index → eval-retrieval → eval-generation → report`) runs end-to-end in ~5 minutes on CPU after caching.
+`fin-rag-research-assistant` builds a text corpus from **26 real Federal Reserve Beige Book documents** (two releases — October 2025 and January 2026 — each with a national summary plus twelve district reports, all public domain), chunks it with provenance, and evaluates three retrievers (BM25, dense MiniLM embeddings, hybrid reciprocal-rank fusion) plus a random control against a **two-part, self-authored QA design**: SET A (20 dev questions + 2 probes) used for gold verification, debugging, and refusal-threshold selection, and SET B (12 held-out questions + 2 probes, paraphrased, never used for any tuning) used for the headline evaluation. A small instruct model (Qwen 2.5 0.5B) then answers the held-out questions from the top-3 retrieved excerpts under an explicit "cite excerpts or refuse" instruction, and the study measures citation existence, lexical groundedness, and refusal behavior. The full pipeline (`fetch → index → eval-retrieval → eval-generation → report`) runs end-to-end in ~5–10 minutes on CPU after caching.
 
 ## 2 · Research question
 
@@ -26,19 +26,21 @@ Retrieval-augmented generation (RAG) is the dominant pattern for grounding LLM s
 
 ## 4 · Why this matters
 
-- **Sparse vs dense is not settled in practice.** On this corpus BM25 achieved Recall@5 = **1.00** (MRR 0.847) while a general-purpose sentence embedding (MiniLM) reached only 0.20 — an instructive, reproducible gap.
-- **Grounding can fail even with perfect retrieval.** With the top-3 BM25 excerpts provided, the 0.5B model produced structurally valid citations (8/8) but very low lexical groundedness (mean F1 0.035), and it answered two out-of-scope questions instead of refusing — one of them fabricating a specific federal-funds rate range that appears nowhere in the corpus.
-- **Refusal policy design needs measurement, not intuition.** A score-threshold refusal rule (τ = 0.369) produced **zero false refusals** on in-scope questions but refused **0/2** out-of-scope probes whose dense scores overlapped the in-scope range. That failure mode is documented with the score distributions that caused it.
+- **Sparse vs dense is not settled in practice.** On dev questions (SET A) BM25 achieved Recall@5 = **1.00** (MRR 0.847) while a general-purpose sentence embedding (MiniLM) reached only 0.20; on paraphrased held-out questions (SET B) BM25 drops to MRR **0.586** — dev-set numbers overstate real retrieval quality, which is exactly why SET B exists.
+- **Grounding can fail even with perfect retrieval.** With the top-3 hybrid excerpts provided, the 0.5B model produced structurally valid citations (citation-existence 12/12 on held-out questions) but very low lexical groundedness (mean F1 0.020; answer-precision 0.425), and it answered the two out-of-scope probes instead of refusing — one of them asserting a specific national unemployment figure attributed to the BLS that appears nowhere in the corpus in that form.
+- **Refusal policy design needs measurement, not intuition.** A score-threshold refusal rule (τ = 0.369, selected on SET A only) produced **zero false refusals** on in-scope questions in both splits (20/20 dev, 12/12 held-out) but refused **0/2** out-of-scope probes in both splits — probe dense scores overlap the in-scope range. That failure mode is documented with the score distributions that caused it.
 
 ## 5 · Methodology
 
-**Corpus.** 26 Beige Book documents (2 releases × 13 documents) fetched from federalreserve.gov, parsed with a stdlib HTML extractor into paragraph text (~2,650 words per document), and chunked into **104 chunks** of 800 whitespace-delimited tokens with 100-token overlap. Every chunk records its source document and character span. Raw HTML and parsed artifacts are cached under `data/` (git-ignored) with a full provenance JSON (URL, release, fetch date, User-Agent).
+**Corpus.** 26 Beige Book documents (2 releases × 13 documents) fetched from federalreserve.gov, parsed with a stdlib HTML extractor into paragraph text (~2,650 words per document), and chunked into **104 chunks** of 800 whitespace-delimited tokens with 100-token overlap. Every chunk records its source document and character span. Raw HTML and parsed artifacts are cached under `data/` (git-ignored) with a full provenance JSON (URL, release, fetch date, User-Agent) **and a committed `data/corpus_manifest.json` that pins the SHA-256 of each fetched document** — `fetch` verifies hashes and warns loudly if federalreserve.gov revises a page, so the snapshot behind every reported number is detectable, not silent.
 
-**Retrieval evaluation.** A 20-question QA set was authored *after* reading the corpus (10 questions per release), each with the gold chunk id and a verbatim evidence snippet; `eval-retrieval` machine-verifies that every evidence snippet appears in its gold chunk (20/20 verified). Retrievers: BM25 (`rank-bm25`), dense (all-MiniLM-L6-v2 cosine), hybrid (reciprocal rank fusion, k=60, Cormack et al. 2009), plus a random control. Metrics: Recall@1/@5, MRR, nDCG@5 at depth 10. A chunk-size sensitivity run (400 tokens) re-maps gold chunks (20/20 re-mapped) and re-evaluates.
+**Two-part QA design (both sets self-authored by the researcher).** SET A (development, `data/qa/qa_set_dev.jsonl`) — 20 in-scope questions (10 per release) + 2 out-of-scope probes — was authored after reading the corpus, each with the gold chunk id and a verbatim evidence snippet that `eval-retrieval` machine-verifies (20/20). It is used for gold verification, debugging, and **refusal-threshold selection**. SET B (held-out, `data/qa/qa_set_eval.jsonl`) — 12 in-scope questions (paraphrased; wording deliberately differs from both the corpus and SET A) + 2 out-of-scope probes + temporal/citation-trap variants — was authored after SET A was frozen and is **never used for threshold selection or tuning**. There are no external annotators; both sets are study instruments, disclosed as such. Gold evidence is machine-verified for both sets (20/20 dev, 12/12 held-out).
 
-**Refusal policy.** Refuse when the top dense cosine score < τ. τ is selected from the in-scope score distribution (5th percentile); the study reports in-scope pass rate, false-refusal rate, and out-of-scope probe refusal rate.
+**Retrieval evaluation.** Retrievers: BM25 (`rank-bm25`), dense (all-MiniLM-L6-v2 cosine), hybrid (reciprocal rank fusion, k=60, Cormack et al. 2009), plus a random control. Metrics: Recall@1/@5, MRR, nDCG@5 at depth 10, reported **separately for SET A (dev) and SET B (held-out)**. A chunk-size sensitivity run (400 tokens) re-maps gold chunks and re-evaluates.
 
-**Grounded generation.** Qwen/Qwen2.5-0.5B-Instruct (greedy decoding, max 160 new tokens) answers 8 in-scope questions plus 2 out-of-scope probes from the top-3 hybrid-retrieved excerpts under the instruction: *"Answer using ONLY the provided excerpts; cite excerpt numbers; if the excerpts do not contain the answer, reply exactly INSUFFICIENT_CONTEXT."* Metrics (documented as **proxies**, not human evaluation): citation validity (cited ids exist and were retrieved), lexical groundedness (token-overlap F1 between answer and cited excerpts), refusal correctness, latency.
+**Refusal policy.** Refuse when the top dense cosine score < τ. τ is selected **on SET A only**, by an explicit clean-gap rule: `τ = min(in_scope_min − margin, max(probe_max + 0.01, (in_scope_min + probe_max)/2))` with margin 0.02 (falling back to `in_scope_min − margin` when the gap rule degenerates), which yields τ = 0.369 on SET A (in-scope score range 0.389–0.708; probe scores 0.439–0.583 overlap that range, so the fallback branch fired). The rule is *not* a percentile of the in-scope distribution. The study reports in-scope pass rate, false-refusal rate, and out-of-scope probe refusal rate **on both splits** — SET B is the headline.
+
+**Grounded generation.** Qwen/Qwen2.5-0.5B-Instruct (greedy decoding, max 160 new tokens) answers **all 12 held-out (SET B) in-scope questions** plus the 2 SET B probes from the top-3 hybrid-retrieved excerpts under the instruction: *"Answer using ONLY the provided excerpts; cite excerpt numbers; if the excerpts do not contain the answer, reply exactly INSUFFICIENT_CONTEXT."* Metrics (documented as **proxies**, not human evaluation): citation-existence rate (every non-refusal answer cites ≥1 provided excerpt — existence only, **not** entailment), fabricated-citation rate (bracketed ids outside the provided range), lexical groundedness (token-overlap F1 between answer and cited excerpts, reported alongside answer-precision because the F1 recall denominator spans the full 800-token excerpts), refusal correctness, latency.
 
 ## 6 · Dataset
 
@@ -49,9 +51,10 @@ Retrieval-augmented generation (RAG) is the dominant pattern for grounding LLM s
 | Documents | 26 (national summary + 12 districts per release) |
 | Text after parsing | ~457,000 characters (~68,000 words) |
 | Chunks (study corpus) | 104 × 800 tokens, 100-token overlap |
-| QA set | 20 in-scope + 2 out-of-scope probes (`data/qa/qa_set.jsonl`, tracked) |
+| QA SET A (dev) | 20 in-scope + 2 out-of-scope probes (`data/qa/qa_set_dev.jsonl`, tracked) |
+| QA SET B (held-out) | 12 in-scope + 2 out-of-scope probes (`data/qa/qa_set_eval.jsonl`, tracked) |
 
-The QA set is a **study instrument authored by the researcher**, not a public benchmark: questions were written after reading the corpus, each with a verbatim evidence snippet machine-verified against its gold chunk (methodology note included in every generated report).
+Both QA sets are **study instruments authored by the researcher** (single builder; no external annotators), not public benchmarks: SET A questions were written after reading the corpus; SET B questions were written after SET A was frozen, with paraphrased wording to reduce overlap. Every question carries a verbatim evidence snippet machine-verified against its gold chunk (methodology note included in every generated report).
 
 ## 7 · Data sources
 
@@ -77,15 +80,15 @@ src/fin_rag_research_assistant/
 └── reporting.py      # figures + reports/metrics.json + summary.md
 scripts/
 ├── run_study.py      # CLI: fetch | index | eval-retrieval | eval-generation | report | all
-└── author_qa_set.py  # regenerates data/qa/qa_set.jsonl from authored questions
+└── author_qa_set.py  # regenerates data/qa/qa_set_dev.jsonl + qa_set_eval.jsonl from authored questions
 ```
 
 ## 9 · Experimental design
 
-1. `fetch` — download/cache 26 Beige Book HTML documents (network only here).
+1. `fetch` — download/cache 26 Beige Book HTML documents (network only here) and verify each against the committed SHA-256 manifest.
 2. `index` — parse → chunk at 800 and 400 tokens → `data/processed/chunks_*.jsonl`.
-3. `eval-retrieval` — verify 20/20 gold evidence snippets; evaluate 4 retrievers at depth 10; recall curves; select refusal τ; 400-token sensitivity.
-4. `eval-generation` — Qwen 2.5 0.5B answers 8 questions + 2 probes from top-3 hybrid excerpts; proxy metrics; 2 good/2 flawed examples recorded verbatim.
+3. `eval-retrieval` — verify gold evidence snippets (SET A 20/20, SET B 12/12); evaluate 4 retrievers at depth 10 **per split**; recall curves; select refusal τ **on SET A only**; 400-token sensitivity.
+4. `eval-generation` — Qwen 2.5 0.5B answers **all 12 SET B questions** + 2 SET B probes from top-3 hybrid excerpts; proxy metrics; 2 good/2 flawed examples recorded verbatim.
 5. `report` — merge everything into `reports/metrics.json` + `reports/summary.md` + 5 figures.
 
 Fixed seeds (42) for the random control; greedy decoding for generation; deterministic chunk ids (`{doc_id}:c{position}:{sha1[:8]}`).
@@ -99,55 +102,58 @@ Fixed seeds (42) for the random control; greedy decoding for generation; determi
 
 ## 11 · Evaluation metrics
 
-Retrieval: Recall@1, Recall@5, MRR, nDCG@5 (gold-chunk relevance; higher is better; random control provides the floor). Refusal: false-refusal rate (in-scope), probe refusal rate (out-of-scope). Generation proxies: citation-validity rate, token-overlap F1 ("groundedness"), refusal correctness, latency. All formulas are implemented in `metrics.py` with hand-computed unit tests.
+Retrieval: Recall@1, Recall@5, MRR, nDCG@5 (gold-chunk relevance; higher is better; random control provides the floor), reported per split. Refusal: false-refusal rate (in-scope), probe refusal rate (out-of-scope), per split. Generation proxies: citation-**existence** rate (cited ids exist and were retrieved — this does **not** verify that the cited passage supports the claim; no entailment model is run), fabricated-citation rate (out-of-range bracketed ids), token-overlap F1 ("groundedness") and answer-precision (same numerator, answer-token denominator — robust to the long-excerpt recall denominator), refusal correctness, latency. All formulas are implemented in `metrics.py`/`generation.py` with hand-computed unit tests.
 
 ## 12 · Results
 
-**Retrieval (20 questions, 800-token chunks, depth 10):**
+**Retrieval (800-token chunks, depth 10). SET A = 20 dev questions; SET B = 12 held-out paraphrased questions (never used for tuning):**
 
-| Retriever | Recall@1 | Recall@5 | MRR | nDCG@5 |
-| --- | --- | --- | --- | --- |
-| **BM25 (sparse)** | **0.75** | **1.00** | **0.847** | **0.886** |
-| Dense (MiniLM) | 0.15 | 0.20 | 0.174 | 0.169 |
-| Hybrid (RRF) | 0.20 | 0.45 | 0.329 | 0.351 |
-| Random control | 0.00 | 0.00 | 0.013 | 0.000 |
+| Retriever | SET A R@1 | SET A R@5 | SET A MRR | SET A nDCG@5 | SET B R@1 | SET B R@5 | SET B MRR | SET B nDCG@5 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **BM25 (sparse)** | **0.75** | **1.00** | **0.847** | **0.886** | **0.417** | **0.833** | **0.586** | **0.641** |
+| Dense (MiniLM) | 0.15 | 0.20 | 0.174 | 0.169 | 0.167 | 0.333 | 0.211 | 0.241 |
+| Hybrid (RRF) | 0.20 | 0.45 | 0.329 | 0.351 | 0.333 | 0.417 | 0.364 | 0.366 |
+| Random control | 0.00 | 0.00 | 0.013 | 0.000 | 0.000 | 0.083 | 0.021 | 0.036 |
 
-**Chunk-size sensitivity (400 tokens):** BM25 Recall@1 0.80 / MRR 0.90; dense improves to Recall@5 0.55; hybrid to 0.65. Smaller chunks help every retriever; BM25 still dominates.
+Held-out performance is lower across the board — SET A numbers are optimistic because the questions were written while reading the corpus; SET B is the honest estimate.
 
-**Refusal policy (τ = 0.369 from the in-scope score distribution):** in-scope pass 20/20 (0% false refusals); out-of-scope probes refused 0/2 — probe dense scores (0.439–0.583) fall inside the in-scope range (0.389–0.708), so a univariate dense-score threshold cannot separate them on this corpus.
+**Chunk-size sensitivity (400 tokens, SET A):** BM25 Recall@1 0.80 / MRR 0.90; dense and hybrid improve (dense Recall@5 0.55, hybrid 0.65). Smaller chunks help every retriever; BM25 still dominates.
 
-**Grounded generation (Qwen 2.5 0.5B, 8 questions + 2 probes):**
+**Refusal policy (τ = 0.369, selected on SET A by the clean-gap rule; SET B never touched during selection):** SET A in-scope pass 20/20 (0% false refusals), probes refused 0/2; **SET B (headline) in-scope pass 12/12 (0% false refusals), probes refused 0/2** — probe dense scores overlap the in-scope range in both splits (SET B: probes 0.409–0.434 vs in-scope 0.388–0.669), so a univariate dense-score threshold cannot separate them on this corpus. The τ selected on dev generalizes to held-out questions (zero false refusals in both), but it provides no out-of-scope protection.
+
+**Grounded generation (Qwen 2.5 0.5B, all 12 SET B questions + 2 SET B probes):**
 
 | Metric | Value |
 | --- | --- |
-| Citation validity (cited ids exist and were retrieved) | 8/8 |
-| Groundedness (token-overlap F1, mean / median) | 0.035 / 0.000 |
+| Citation-existence rate (cites ≥1 provided excerpt) | 12/12 (1.00) |
+| Fabricated-citation rate (out-of-range ids) | 0/12 (0.00) |
+| Groundedness (token-overlap F1, mean / median) | 0.020 / 0.006 |
+| Answer-precision (mean / median) | 0.425 / 0.345 |
 | Out-of-scope probes correctly refused | 0/2 |
-| Mean latency per answer (CPU) | 4.55 s |
+| Mean latency per answer (CPU) | 7.22 s |
 
-Documented examples: **flawed** — Q-01's full answer was `[2]` (a bare citation with no content); **OOS-01** (federal funds rate in January 2026 — not in the corpus) produced: *"The FOMC announced a target range of 0.25% to 0.50% for the federal funds rate at its January 2026 meeting."* — a specific, confident **hallucination** with a citation attached.
+Citation-**existence** is a structural check only — it does not verify that the cited passage supports the claim (no entailment model is run). Groundedness F1 is small partly because its recall denominator spans the full 800-token excerpts; answer-precision (answer-token denominator) is the more comparable figure. Documented examples (SET B ids): **flawed** — B-02/B-03. The probe hallucination persists in a new form: B-OOS-01 ("national unemployment rate for December 2025 according to the Bureau of Labor Statistics" — not in the corpus) produced: *"[1] The national unemployment rate for December 2025 according to the Bureau of Labor Statistics was 4.7%."* — a confident, specific figure with a citation attached; the only "4.7 percent" in the corpus is Philadelphia firms' third-quarter inflation expectations.
 
 ## 13 · Interpretation
 
-- The sparse-over-dense gap (Recall@5 1.00 vs 0.20) is consistent with the corpus's structure: answers hinge on exact entity/number phrases that BM25 matches lexically, while the corpus is dominated by shared navigation boilerplate that flattens dense semantic neighborhoods. It does **not** show dense retrieval is weak in general — only that it is not free wins on this corpus shape.
-- The hybrid result sitting *between* its parents (and below BM25) shows RRF is not a guaranteed upgrade when one retriever dominates.
-- Citation validity being perfect while groundedness is near zero demonstrates that these two proxy metrics measure different things: the model *cites* the right excerpts but *answers in its own (often wrong) words*. Neither proxy alone is sufficient evidence of faithfulness.
-- The refusal-rule failure (0/2 probes) plus the generation-layer refusal failure (the model never emitted `INSUFFICIENT_CONTEXT`) jointly illustrate that **refusal is a system property that must be measured, not assumed**.
+- The sparse-over-dense gap replicates on held-out questions (BM25 R@5 0.833 vs dense 0.333 on SET B) but narrows in absolute terms — dev-only evaluation would have overstated BM25's advantage (R@5 1.00 vs 0.20). Single-split RAG evaluations overestimate retrieval quality.
+- The hybrid result sitting *between* its parents (and below BM25 on both splits) shows RRF is not a guaranteed upgrade when one retriever dominates.
+- Citation existence being perfect (12/12) while groundedness is near zero demonstrates that these proxies measure different things: the model *cites* provided excerpts but *answers in its own (often wrong) words*. Neither proxy alone is sufficient evidence of faithfulness, and existence is not entailment.
+- The refusal-rule failure (0/2 probes on both splits) plus the generation-layer refusal failure (the model never emitted `INSUFFICIENT_CONTEXT`) jointly illustrate that **refusal is a system property that must be measured, not assumed** — and that a threshold calibrated on dev data can generalize to in-scope behavior while still failing out-of-scope.
 
 ## 14 · Limitations
 
-1. The QA set (20 questions + 2 probes) was authored by the researcher during corpus preparation — it is a study instrument, not a public benchmark, and results may not generalize.
-2. Groundedness is a lexical-overlap proxy; it undercounts correct paraphrases and cannot verify semantic faithfulness. No human evaluation panel was run.
+1. Both QA sets were authored by the researcher (single builder; no external annotators) — they are study instruments, not public benchmarks, and results may not generalize. The SET A/SET B split removes the *threshold-circularity* (τ is selected on SET A and evaluated on SET B) but not the self-authorship bias; SET B paraphrases reduce, and cannot eliminate, wording overlap with the corpus.
+2. Groundedness is a lexical-overlap proxy; it undercounts correct paraphrases and cannot verify semantic faithfulness (its recall denominator spans the full 800-token excerpts, so F1 is structurally small — read it alongside answer-precision). Citation existence does not verify entailment. No human evaluation panel was run.
 3. The generator is a 0.5B model chosen for CPU reproducibility; larger instruct models would likely follow the refusal instruction better. The study measures the *pipeline*, not the frontier.
 4. The corpus carries federalreserve.gov website boilerplate inside every chunk; no boilerplate stripping was applied beyond skipping script/style tags.
-5. Two releases and one corpus shape; BM25's dominance should be re-measured on other corpora before generalizing.
-6. The refusal threshold is univariate (dense top score) and was fitted on the same question scores it is evaluated on.
+5. Two releases and one corpus shape; BM25's dominance should be re-measured on other corpora before generalizing. 12 held-out questions is a small evaluation set; confidence intervals are not reported because per-question relevance is deterministic and the sample is too small for stable resampling claims.
 
 ## 15 · Reproducibility
 
-- Full pipeline: `python scripts/run_study.py all` (~5 min on CPU after the first fetch; network only for `fetch` and model downloads).
+- Full pipeline: `python scripts/run_study.py all` (~5–10 min on CPU after the first fetch; network only for `fetch` and model downloads).
 - Every stage is idempotent and cache-first; deterministic chunk ids; fixed seed for the random control; greedy decoding.
-- The exact fetched bytes are cached in `data/raw/` (git-ignored) with provenance JSON; re-running `fetch` on a fresh clone re-downloads the public documents.
+- **Snapshot pinning:** `data/corpus_manifest.json` (committed) records the SHA-256, size, URL, and fetch date of each of the 26 source documents. `fetch` re-verifies hashes on every run and reports mismatches loudly, so a silently revised federalreserve.gov page cannot change results undetected. The exact fetched bytes are cached in `data/raw/` (git-ignored) with provenance JSON; a fresh clone re-downloads the public documents and must pass hash verification for its evaluation to be comparable with the numbers reported here.
 - `reports/metrics.json` and `reports/summary.md` are committed and were produced by the committed code on 2026-10-08.
 
 ## 16 · Installation
@@ -183,7 +189,7 @@ $ python scripts/run_study.py eval-retrieval
 
 ## 19 · Project structure
 
-See [§8 Architecture](#8--architecture). Tracked artifacts: `reports/` (metrics.json, summary.md), `figures/` (5 PNGs), `data/qa/qa_set.jsonl` (the study instrument). Git-ignored: raw HTML, parsed corpus, chunk files, HF model caches.
+See [§8 Architecture](#8--architecture). Tracked artifacts: `reports/` (metrics.json, summary.md), `figures/` (5 PNGs), `data/qa/qa_set_dev.jsonl` + `data/qa/qa_set_eval.jsonl` (the study instruments), `data/corpus_manifest.json` (SHA-256 snapshot manifest). Git-ignored: raw HTML, parsed corpus, chunk files, HF model caches.
 
 ## 20 · Future work
 
