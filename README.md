@@ -32,7 +32,7 @@ Retrieval-augmented generation (RAG) is the dominant pattern for grounding LLM s
 
 ## 5 · Methodology
 
-**Corpus.** 26 Beige Book documents (2 releases × 13 documents) fetched from federalreserve.gov, parsed with a stdlib HTML extractor into paragraph text (~2,650 words per document), and chunked into **104 chunks** of 800 whitespace-delimited tokens with 100-token overlap. Every chunk records its source document and character span. Raw HTML and parsed artifacts are cached under `data/` (git-ignored) with a full provenance JSON (URL, release, fetch date, User-Agent) **and a committed `data/corpus_manifest.json` that pins the SHA-256 of each fetched document** — `fetch` verifies hashes and warns loudly if federalreserve.gov revises a page, so the snapshot behind every reported number is detectable, not silent.
+**Corpus.** 26 Beige Book documents (2 releases × 13 documents) fetched from federalreserve.gov, parsed with a stdlib HTML extractor into paragraph text (~2,386 words per document), and chunked into **104 chunks** of 800 whitespace-delimited tokens with 100-token overlap. Every chunk records its source document and character span. Raw HTML and parsed artifacts are cached under `data/` (git-ignored) with a full provenance JSON (URL, release, fetch date, User-Agent) **and a committed `data/corpus_manifest.json` that pins the SHA-256 of each fetched document** — `fetch` verifies hashes and warns loudly if federalreserve.gov revises a page, so the snapshot behind every reported number is detectable, not silent.
 
 **Two-part QA design (both sets self-authored by the researcher).** SET A (development, `data/qa/qa_set_dev.jsonl`) — 20 in-scope questions (10 per release) + 2 out-of-scope probes — was authored after reading the corpus, each with the gold chunk id and a verbatim evidence snippet that `eval-retrieval` machine-verifies (20/20). It is used for gold verification, debugging, and **refusal-threshold selection**. SET B (held-out, `data/qa/qa_set_eval.jsonl`) — 12 in-scope questions (paraphrased; wording deliberately differs from both the corpus and SET A) + 2 out-of-scope probes + temporal/citation-trap variants — was authored after SET A was frozen and is **never used for threshold selection or tuning**. There are no external annotators; both sets are study instruments, disclosed as such. Gold evidence is machine-verified for both sets (20/20 dev, 12/12 held-out).
 
@@ -49,7 +49,7 @@ Retrieval-augmented generation (RAG) is the dominant pattern for grounding LLM s
 | Source | Federal Reserve Beige Book (public domain, U.S. government) |
 | Releases | 202510 (October 2025), 202601 (January 2026) |
 | Documents | 26 (national summary + 12 districts per release) |
-| Text after parsing | ~457,000 characters (~68,000 words) |
+| Text after parsing | ~457,000 characters (~62,000 words) |
 | Chunks (study corpus) | 104 × 800 tokens, 100-token overlap |
 | QA SET A (dev) | 20 in-scope + 2 out-of-scope probes (`data/qa/qa_set_dev.jsonl`, tracked) |
 | QA SET B (held-out) | 12 in-scope + 2 out-of-scope probes (`data/qa/qa_set_eval.jsonl`, tracked) |
@@ -95,7 +95,7 @@ Fixed seeds (42) for the random control; greedy decoding for generation; determi
 
 ## 10 · Models
 
-- **BM25** — `rank-bm25` over whitespace tokenization (lowercased).
+- **BM25** — `rank-bm25` over whitespace tokenization (`str.split()`, no lowercasing).
 - **Dense** — `sentence-transformers/all-MiniLM-L6-v2` (384-dim, cosine).
 - **Hybrid** — reciprocal rank fusion of BM25 + dense (k = 60).
 - **Generator** — `Qwen/Qwen2.5-0.5B-Instruct` (0.5B params, CPU, greedy, 160 max new tokens).

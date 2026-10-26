@@ -1,8 +1,11 @@
 """Ranking metrics (pure Python) and reciprocal rank fusion.
 
 Implementations are deliberately dependency-free and unit-tested against hand
-computed examples; nDCG additionally cross-checked against scikit-learn's
-``ndcg_score`` in the test suite (binary relevance, single gold chunk).
+computed examples in tests/test_metrics.py. With binary relevance and a single
+gold chunk, nDCG@k collapses to 1/log2(rank+1) when the gold chunk is inside
+the top-k (else 0), and the tests validate exactly that closed form; no
+third-party metric library (e.g. scikit-learn's ``ndcg_score``) is used
+anywhere in the test suite.
 """
 
 from __future__ import annotations
