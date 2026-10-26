@@ -57,12 +57,13 @@ from fin_rag_research_assistant.evaluation import (  # noqa: E402
     verify_gold_evidence,
 )
 from fin_rag_research_assistant.generation import (  # noqa: E402
+    enforce_refusal,
     evaluate_generation_result,
     generate_answer,
     load_generation_model,
     refusal_correctness,
 )
-from fin_rag_research_assistant.policy import should_refuse  # noqa: E402
+from fin_rag_research_assistant.policy import gate_decision  # noqa: E402
 from fin_rag_research_assistant.qa import (  # noqa: E402
     load_qa_split,
     split_questions_probes,
@@ -348,20 +349,31 @@ def stage_eval_generation(args) -> None:
         retrieved = hybrid.retrieve(item.question, top_k=config.GEN_TOP_K)
         excerpts = [by_id[r.chunk_id].text for r in retrieved]
         raw, latency = generate_answer(item.question, excerpts, model, tokenizer)
+        # None-tolerant dense top score: an EMPTY dense retrieval (no candidates
+        # at all) records None -> the documented no-candidates refusal. Retriever
+        # exceptions are deliberately NOT caught: they fail loudly, they are
+        # never masked as refusals.
+        dense_top = None
+        if dense is not None:
+            dense_hits = dense.retrieve(item.question, top_k=1)
+            dense_top = float(dense_hits[0].score) if dense_hits else None
+        decision = gate_decision(dense_top, tau, armed=dense is not None)
+        emitted, gate_enforced = enforce_refusal(raw, decision)
+        # The EMITTED answer is what gets scored and persisted; the
+        # pre-enforcement model output is kept separately as provenance.
         scored = evaluate_generation_result(
-            item.qid, item.question, excerpts, [r.chunk_id for r in retrieved], raw, latency
+            item.qid, item.question, excerpts, [r.chunk_id for r in retrieved],
+            emitted, latency,
         )
         row = asdict(scored)
         row.pop("prompt_excerpts")  # reproducible from chunk ids; keeps the report small
         row["qtype"] = item.qtype
         row["type"] = "question" if is_question else "refusal_probe"
         row["expected_answer"] = item.answer if is_question else None
-        dense_top = float(dense.retrieve(item.question, top_k=1)[0].score) if dense else None
         row["dense_top_score"] = dense_top
-        row["policy_decision"] = (
-            "refuse" if (dense_top is not None and tau is not None
-                         and should_refuse(dense_top, tau)) else "answer"
-        )
+        row["policy_decision"] = decision
+        row["gate_enforced"] = gate_enforced
+        row["model_raw_answer"] = raw
         results.append(row)
         fabricated = row["fabricated_citations"]
         print(f"[eval-generation] {item.qid}: refusal={row['used_refusal']} "
@@ -390,7 +402,12 @@ def stage_eval_generation(args) -> None:
         "fabricated_citation_rate": (
             n_fabricated / len(nonrefusal) if nonrefusal else 0.0
         ),
-        "n_model_false_refusals": sum(1 for r in in_scope if r["used_refusal"]),
+        # Model-layer false refusals EXCLUDE gate-imposed refusals: a refusal
+        # the gate imposed is a policy decision, not model behavior.
+        "n_model_false_refusals": sum(
+            1 for r in in_scope if r["used_refusal"] and not r["gate_enforced"]
+        ),
+        "n_gate_enforced_refusals": sum(1 for r in results if r["gate_enforced"]),
         "groundedness_mean": sum(f1_values) / len(f1_values) if f1_values else 0.0,
         "groundedness_median": median(f1_values) if f1_values else 0.0,
         "answer_precision_mean": sum(prec_values) / len(prec_values) if prec_values else 0.0,
@@ -439,6 +456,17 @@ def stage_eval_generation(args) -> None:
             "groundedness_f1 recall denominator = ALL unique non-stopword tokens of "
             "the cited 800-token excerpts, so recall is structurally small; read F1 "
             "alongside answer_precision (same numerator, answer-token denominator)."
+        ),
+        "enforcement_semantics": (
+            "The refusal gate is ENFORCED at the generation output boundary: a "
+            "GATE_REFUSE decision replaces the model answer with "
+            "INSUFFICIENT_CONTEXT (row gate_enforced=True; the pre-enforcement "
+            "model output is kept in model_raw_answer). Gate failures fail "
+            "CLOSED (refuse); a disabled gate (--no-dense, or no tau) is "
+            "recorded as policy_decision='disabled' and the raw answer passes "
+            "through. The rule reads ONE dense cosine score: it is a "
+            "retrieval-confidence heuristic, NOT content or prompt-injection "
+            "filtering."
         ),
         "results": results,
         "summary": summary,
