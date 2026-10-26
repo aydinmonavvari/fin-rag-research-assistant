@@ -373,6 +373,12 @@ def render_summary(all_metrics: dict) -> str:
         "proxies — hallucination risk remains and no human evaluation panel was run (see README §14). "
         "Both QA sets are researcher-authored (single builder, no external annotators).")
     add("")
+    add("Refusal-gate scope: the retrieval-confidence gate is ENFORCED at the generation output boundary "
+        "(a GATE_REFUSE decision replaces the model answer with INSUFFICIENT_CONTEXT; gate failures fail "
+        "closed; a disabled gate is recorded as 'disabled', never rendered as approval or as a safety "
+        "refusal) — but the rule reads ONE dense cosine score, so it is NOT content or prompt-injection "
+        "filtering, and any committed tables produced before enforcement predate it.")
+    add("")
     return "\n".join(lines)
 
 

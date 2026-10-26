@@ -62,6 +62,8 @@ Both QA sets are **study instruments authored by the researcher** (single builde
 - Requests send a descriptive User-Agent (GitHub noreply address) and are rate-limited (0.75 s) and cached — documents are never fetched twice in one checkout.
 - **Documented pivot:** the study was originally designed around SEC 10-K filings, but SEC's edge returned persistent HTTP 403 responses to this build environment's datacenter IP. The corpus source was switched to the Beige Book (equally primary, public-domain, and reproducible); the pivot is recorded in the code comments, README, and research report.
 
+**Refusal-gate enforcement (behavior change postdating the recorded run).** The data sources bound what enters the pipeline; the refusal gate now also binds what leaves it. `eval-generation` no longer merely *records* the gate decision: a `GATE_REFUSE` decision replaces the model answer with the documented refusal string `INSUFFICIENT_CONTEXT` at the generation output boundary (each row keeps the pre-enforcement provenance in `model_raw_answer` plus the `gate_enforced` flag), gate failures fail **closed** (malformed tau or score, a rule exception, or a non-bool rule output all refuse), and an unarmed gate (`--no-dense`, or a missing tau artifact) is recorded as `disabled` with the raw answer preserved — never rendered as approval and never as a safety refusal. The calibrated rule itself is unchanged (refuse iff the top-1 dense cosine < τ; no candidates → refuse). The committed §12 tables predate enforcement; the gate refused no request on that run — numbers unchanged.
+
 ## 8 · Architecture
 
 ```
@@ -75,8 +77,8 @@ src/fin_rag_research_assistant/
 ├── metrics.py        # recall@k, MRR, nDCG, RRF math
 ├── qa.py             # QA-set schema, validation, JSONL I/O
 ├── evaluation.py     # gold verification, retrieval eval, refusal analysis
-├── generation.py     # prompt building, local Qwen generation, proxy metrics
-├── policy.py         # score-threshold refusal rule
+├── generation.py     # prompt building, local Qwen generation, proxy metrics, refusal enforcement
+├── policy.py         # score-threshold refusal rule + enforced gate decisions (fail-closed)
 └── reporting.py      # figures + reports/metrics.json + summary.md
 scripts/
 ├── run_study.py      # CLI: fetch | index | eval-retrieval | eval-generation | report | all
@@ -102,7 +104,7 @@ Fixed seeds (42) for the random control; greedy decoding for generation; determi
 
 ## 11 · Evaluation metrics
 
-Retrieval: Recall@1, Recall@5, MRR, nDCG@5 (gold-chunk relevance; higher is better; random control provides the floor), reported per split. Refusal: false-refusal rate (in-scope), probe refusal rate (out-of-scope), per split. Generation proxies: citation-**existence** rate (cited ids exist and were retrieved — this does **not** verify that the cited passage supports the claim; no entailment model is run), fabricated-citation rate (out-of-range bracketed ids), token-overlap F1 ("groundedness") and answer-precision (same numerator, answer-token denominator — robust to the long-excerpt recall denominator), refusal correctness, latency. All formulas are implemented in `metrics.py`/`generation.py` with hand-computed unit tests.
+Retrieval: Recall@1, Recall@5, MRR, nDCG@5 (gold-chunk relevance; higher is better; random control provides the floor), reported per split. Refusal: false-refusal rate (in-scope), probe refusal rate (out-of-scope), per split. Generation proxies: citation-**existence** rate (cited ids exist and were retrieved — this does **not** verify that the cited passage supports the claim; no entailment model is run), fabricated-citation rate (out-of-range bracketed ids), token-overlap F1 ("groundedness") and answer-precision (same numerator, answer-token denominator — robust to the long-excerpt recall denominator), refusal correctness, latency. Enforced-gate row fields in `metrics_generation.json`: `policy_decision` (`refuse` / `answer` / `disabled`), `gate_enforced` (the gate — not the model — imposed the emitted refusal), `model_raw_answer` (the pre-enforcement model output); the summary adds `n_gate_enforced_refusals`, and `n_model_false_refusals` counts model behavior only, excluding gate-imposed refusals. All formulas are implemented in `metrics.py`/`generation.py` with hand-computed unit tests.
 
 ## 12 · Results
 
@@ -148,6 +150,7 @@ Citation-**existence** is a structural check only — it does not verify that th
 3. The generator is a 0.5B model chosen for CPU reproducibility; larger instruct models would likely follow the refusal instruction better. The study measures the *pipeline*, not the frontier.
 4. The corpus carries federalreserve.gov website boilerplate inside every chunk; no boilerplate stripping was applied beyond skipping script/style tags.
 5. Two releases and one corpus shape; BM25's dominance should be re-measured on other corpora before generalizing. 12 held-out questions is a small evaluation set; confidence intervals are not reported because per-question relevance is deterministic and the sample is too small for stable resampling claims.
+6. The enforced gate is a rule over **one dense cosine score**: it is a retrieval-confidence heuristic, **not** content or prompt-injection filtering — a high-confidence malicious answer passes and a low-confidence benign answer is refused, whatever their text says. Gate failures fail **closed** (malformed τ, malformed/non-finite score, a rule exception, or a non-bool rule output all refuse), but retriever exceptions stay loud — they are never masked as refusals. A disabled gate (`--no-dense`, or a missing τ artifact) is a visible-not-prevented bypass: every row records `policy_decision='disabled'` and the raw answers pass through — removing the artifact removes the record, not the behavior.
 
 ## 15 · Reproducibility
 

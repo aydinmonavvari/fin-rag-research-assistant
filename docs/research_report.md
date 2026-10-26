@@ -97,6 +97,7 @@ Recorded examples (verbatim, from `reports/metrics_generation.json`):
 3. The generator (0.5B) was chosen for CPU reproducibility; larger models would likely comply better with the refusal instruction. The study measures pipeline behavior, not frontier capability.
 4. Site boilerplate remains inside chunks; results may differ substantially after boilerplate stripping or section-aware parsing.
 5. One corpus, two releases; the BM25-over-dense gap should be re-measured before any generalization. Twelve held-out questions is a small evaluation set; no confidence intervals are reported because per-question relevance is deterministic and resampling claims would not be stable at this n.
+6. The reported run pre-dates refusal-gate enforcement. Current code enforces the gate at the generation output boundary (a below-τ or empty-retrieval decision replaces the model answer with `INSUFFICIENT_CONTEXT`; gate failures fail closed; a disabled gate is recorded as `disabled`, never rendered as approval), but in the reported run the gate refused no request — every held-out dense top score was ≥ τ (in-scope 0.388–0.669; probes 0.409–0.434 vs τ = 0.369) — so the committed numbers are unchanged by enforcement. The gate itself reads one dense cosine score: a retrieval-confidence heuristic, not content or prompt-injection filtering; retriever exceptions stay loud rather than being masked as refusals.
 
 ## Conclusion
 
