@@ -21,8 +21,6 @@ keywords = [
 ]
 dependencies = [
   "numpy>=1.26",
-  "pandas>=2.0",
-  "scikit-learn>=1.4",
   "matplotlib>=3.8",
   "rank-bm25>=0.2.2",
 ]
