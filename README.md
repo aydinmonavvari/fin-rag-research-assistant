@@ -208,7 +208,7 @@ See [§8 Architecture](#8--architecture). Tracked artifacts: `reports/` (metrics
              Beige Book Reports — BM25 vs Dense vs Hybrid Retrieval with
              Citation-Grounded Generation},
   year    = {2026},
-  version = {1.1.0},
+  version = {1.0.0},
   url     = {https://github.com/aydinmonavvari/fin-rag-research-assistant}
 }
 ```
