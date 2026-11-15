@@ -9,12 +9,14 @@ from fin_rag_research_assistant.generation import (
     REFUSAL_STRING,
     answer_precision,
     build_prompt,
+    enforce_refusal,
     evaluate_generation_result,
     find_citations,
     is_refusal,
     lexical_groundedness,
     parse_citations,
 )
+from fin_rag_research_assistant.policy import GATE_ANSWER, GATE_DISABLED, GATE_REFUSE
 
 
 def test_instruction_matches_specification_verbatim():
@@ -162,3 +164,51 @@ def test_evaluate_result_valid_grounded_answer():
     # answer tokens {apple,total,net,sales,rose,1} -> the bare citation id "1"
     # counts as a token, so precision is 5/6, not 1.0
     assert result.answer_precision == pytest.approx(5 / 6)
+
+
+# --- enforce_refusal: the generation output boundary -------------------------
+
+
+def test_enforce_refusal_replaces_output_on_gate_refuse():
+    """GATE_REFUSE REPLACES the model output with the refusal string."""
+    emitted, enforced = enforce_refusal("Total net sales rose 4% [1].", GATE_REFUSE)
+    assert emitted == REFUSAL_STRING
+    assert enforced is True
+    assert is_refusal(emitted)
+
+
+def test_enforce_refusal_passes_through_answer_and_disabled():
+    """GATE_ANSWER and GATE_DISABLED both pass the raw answer through; only
+    GATE_REFUSE ever rewrites it."""
+    raw = "Total net sales were $391,035 million [1]."
+    assert enforce_refusal(raw, GATE_ANSWER) == (raw, False)
+    assert enforce_refusal(raw, GATE_DISABLED) == (raw, False)
+    assert enforce_refusal(REFUSAL_STRING, GATE_ANSWER) == (REFUSAL_STRING, False)
+
+
+def test_enforce_refusal_fails_closed_on_unknown_decision():
+    """An unknown decision can never leak model text: fail closed to the
+    refusal string (enforced=True)."""
+    raw = "Confident answer with a citation [1]."
+    for bogus in ("unsafe", "REFUSE", "", None, 0):
+        emitted, enforced = enforce_refusal(raw, bogus)
+        assert emitted == REFUSAL_STRING
+        assert enforced is True
+
+
+def test_gate_enforced_refusal_is_scored_as_refusal():
+    """The EMITTED (replaced) answer is what gets scored: a gate-refused row
+    is a true refusal for every downstream metric, while the pre-enforcement
+    model text would have scored as a non-refusal."""
+    raw = "The national unemployment rate was 4.7% [1]."
+    emitted, enforced = enforce_refusal(raw, GATE_REFUSE)
+    assert (emitted, enforced) == (REFUSAL_STRING, True)
+    scored_refusal = evaluate_generation_result(
+        "B-OOS-1", "q?", ["excerpt"], ["id1"], emitted, 0.1
+    )
+    assert scored_refusal.used_refusal is True
+    assert scored_refusal.citation_valid is True  # a refusal makes no claim
+    scored_raw = evaluate_generation_result(
+        "B-OOS-1", "q?", ["excerpt"], ["id1"], raw, 0.1
+    )
+    assert scored_raw.used_refusal is False  # what the model WOULD have scored

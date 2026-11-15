@@ -19,6 +19,7 @@ import time
 from dataclasses import dataclass
 
 from fin_rag_research_assistant import config
+from fin_rag_research_assistant.policy import GATE_ANSWER, GATE_DISABLED, GATE_REFUSE
 
 REFUSAL_STRING = "INSUFFICIENT_CONTEXT"
 EXCERPT_PATTERN = re.compile(r"\[(\d+)\]")  # citations like [1], [2]
@@ -27,6 +28,27 @@ EXCERPT_PATTERN = re.compile(r"\[(\d+)\]")  # citations like [1], [2]
 def is_refusal(answer: str) -> bool:
     """True when the model reply is (or contains) the exact refusal string."""
     return REFUSAL_STRING in answer.strip()
+
+
+def enforce_refusal(raw_answer: str, decision: str) -> tuple[str, bool]:
+    """Bind a gate decision to the EMITTED answer (the output boundary).
+
+    Returns ``(emitted, enforced)``:
+
+    - ``GATE_REFUSE``: the model output is REPLACED by ``REFUSAL_STRING`` and
+      ``enforced`` is True — the refusal is imposed by the retrieval-confidence
+      gate, not emitted by the model.
+    - ``GATE_ANSWER`` or ``GATE_DISABLED``: the raw answer passes through
+      unchanged. A DISABLED gate is recorded as such; it is never rendered as
+      an approval or as a safety refusal.
+    - Any unknown decision FAILS CLOSED: the refusal string is emitted, so an
+      unrecognized gate state can never leak model text.
+    """
+    if decision == GATE_REFUSE:
+        return REFUSAL_STRING, True
+    if decision in (GATE_ANSWER, GATE_DISABLED):
+        return raw_answer, False
+    return REFUSAL_STRING, True
 
 
 def build_prompt(question: str, excerpts: list[str]) -> list[dict, ...]:
