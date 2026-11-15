@@ -41,7 +41,7 @@ The corpus comprises both releases of the Federal Reserve Beige Book published o
 
 ## Methodology
 
-**Retrievers.** BM25 (`rank-bm25`, lowercased whitespace tokenization); dense cosine similarity over frozen `all-MiniLM-L6-v2` embeddings; hybrid reciprocal rank fusion of the two (k = 60); and a seeded random control. All retrievers return ranked chunk lists; evaluation depth is 10.
+**Retrievers.** BM25 (`rank-bm25` over `str.split()` whitespace tokenization, no lowercasing); dense cosine similarity over frozen `all-MiniLM-L6-v2` embeddings; hybrid reciprocal rank fusion of the two (k = 60); and a seeded random control. All retrievers return ranked chunk lists; evaluation depth is 10.
 
 **Ranking metrics.** Recall@1, Recall@5, MRR (reciprocal rank of the gold chunk), and nDCG@5, computed in `metrics.py` and verified against hand-computed examples in the unit tests.
 

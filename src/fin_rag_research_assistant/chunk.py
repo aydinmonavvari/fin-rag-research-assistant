@@ -16,7 +16,7 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class Chunk:
-    chunk_id: str  # deterministic: {doc_id}:c{position:04d}
+    chunk_id: str  # deterministic: {doc_id}:c{position:04d}:{sha1(f"{doc_id}:{position}")[:8]}
     doc_id: str  # source document id, e.g. "202601-boston"
     position: int  # 0-based chunk index within the doc
     text: str
